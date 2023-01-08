@@ -6,27 +6,34 @@
 #ifndef OOLONG_ERROR_H
 #define OOLONG_ERROR_H
 
+#include <stdlib.h>
+
+/* Remove this to prevent exiting on errors. */ 
+#define OOLONG_EXIT_ON_ERROR
+
 #ifndef __GNUC__
 #warning "OOLONG: not compiling with GCC, error.h utilises GCC compiler extensions."
 #endif // __GNUC__
 
+#define oolong_error_record(n) oolong_error_debug_record(n, __FILE__, __func__, __LINE__)
+
 enum oolong_error_e
 {
-    OOLONG_ERROR_NONE                 = 0b00000000,  /* No error. */
-    OOLONG_ERROR_INVALID_ARGUMENT     = 0b00000001,  /* Argument passed to function was invalid. */
-    OOLONG_ERROR_NO_SUCH_ELEMENT      = 0b00000010,  /* Requested element was not found in array or similar. */
-    OOLONG_ERROR_COULD_NOT_OPEN_FILE  = 0b00000100,  /* Failed to open file. */
-    OOLONG_ERROR_FAILED_IO_READ       = 0b00001000,  /* Failed to read from I/O. */
-    OOLONG_ERROR_FAILED_IO_WRITE      = 0b00010000,  /* Failed to write to I/O. */
+    OOLONG_ERROR_NONE               = 0b00000000,  /* No error. */
+    OOLONG_ERROR_INVALID_ARGUMENT   = 0b00000001,  /* Argument passed to function was invalid. */
+    OOLONG_ERROR_NO_SUCH_ELEMENT    = 0b00000010,  /* Requested element was not found in array or similar. */
+    OOLONG_ERROR_NOT_ENOUGH_MEMORY  = 0b00000100,  /* Oolong has run out of, or failed to allocate memory. */
+    OOLONG_ERROR_FAILED_IO_READ     = 0b00001000,  /* Failed to read from I/O. */
+    OOLONG_ERROR_FAILED_IO_WRITE    = 0b00010000,  /* Failed to write to I/O. */
 };
 
 typedef enum oolong_error_e oolong_error_t;
 
 /*
  * Records the given error, recording the same type of error twice, without
- * clearing errors inbetween, does nothing.
+ * clearing errors inbetween, does nothing. Returns the recorded error.
  */
-void oolong_error_record(oolong_error_t error);
+oolong_error_t oolong_error_debug_record(oolong_error_t error, const char* file, const char* function, size_t line);
 
 /*
  * Clears all recorded errors.
