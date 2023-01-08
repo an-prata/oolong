@@ -4,5 +4,7 @@
  */
 
 #include "error.h"
+#include "escapes.h"
 #include "keyboard.h"
+#include "screen_buffer.h"
 
