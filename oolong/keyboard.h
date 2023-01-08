@@ -3,8 +3,12 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-enum key_e
+#include <limits.h>
+#include "error.h"
+
+enum oolong_key_e
 {
+    KEY_ERROR = INT_MIN, /* Failed to get key. */
     KEY_NULL          = 0,
     KEY_TAB           = 9,
     KEY_RETURN        = 10,
@@ -113,11 +117,21 @@ enum key_e
     KEY_END           = -6,
 };
 
-typedef enum key_e key_t;
+typedef enum oolong_key_e oolong_key_t;
 
-void oolong_disable_canonical_input(void);
+/*
+ * Disables canonical terminal input, causing stdin to not wait for a newline
+ * and for functions like getc() to instantly return on a keystroke.
+ */
+oolong_error_t oolong_disable_canonical_input(void);
 
-void oolong_restore_canonical_input(void);
+/*
+ * Restores the terminal to its original state.
+ */
+oolong_error_t oolong_restore_canonical_input(void);
 
-key_t oolong_keyboard_get_key(void);
+/*
+ * Gets a single keypress, canonical input should be disabled.
+ */
+oolong_key_t oolong_keyboard_get_key(void);
 
