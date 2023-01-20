@@ -4,6 +4,8 @@
  */
 
 #include <wchar.h>
+#include <stdio.h>
+#include "styling.h"
 #include "error.h"
 
 enum oolong_alignment_e
@@ -28,6 +30,7 @@ enum oolong_stack_view_element_state_e
 };
 
 typedef int enum_t;  /* Serves only to clarify use as a generic enum type. */
+typedef FILE file_t;
 typedef enum oolong_alignment_e oolong_alignment_t;
 typedef enum oolong_stack_view_element_type_e oolong_stack_view_element_type_t;
 typedef enum oolong_stack_view_element_state_e oolong_stack_view_element_state_t;
@@ -50,16 +53,16 @@ struct oolong_stack_view_options_s
 
 struct oolong_stack_view_label_data_s
 {
-    wchar_t* text;          /* Pointer to the label's text. */
-    const wchar_t** style;  /* An array of wide string escape codes to style text. */
+    wchar_t* text;              /* Pointer to the label's text. */
+    oolong_style_set_t* style;  /* An array of wide string escape codes to style text. */
 };
 
 struct oolong_stack_view_button_data_s
 {
     wchar_t* text;                            /* Pointer to the button's text. */
     oolong_stack_view_element_state_t state;  /* State of the element. */
-    const wchar_t** style;                    /* An array of wide string escape codes to style text. */
-    const wchar_t** style_selected;           /* An array of wide string escape codes to style text while selected. */
+    oolong_style_set_t* style;                /* An array of wide string escape codes to style text. */
+    oolong_style_set_t* style_selected;       /* An array of wide string escape codes to style text while selected. */
 };
 
 union oolong_stack_view_element_data_u
@@ -116,4 +119,9 @@ void oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view);
  * elements, then this function does nothing.
  */
 void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view);
+
+/*
+ * Prints the given stack view to the given file.
+ */
+oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* file);
 
