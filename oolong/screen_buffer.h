@@ -24,6 +24,11 @@ struct oolong_screen_buffer_dimensions_s
 };
 
 /*
+ * The the dimensions of the current terminal screen.
+ */
+oolong_screen_buffer_dimensions_t oolong_get_screen_dimensions(void);
+
+/*
  * Creates and returns a pointer to a new screen buffer.
  */
 oolong_screen_buffer_t* oolong_screen_buffer_create(void);
