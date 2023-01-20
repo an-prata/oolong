@@ -7,6 +7,8 @@
 #include "error.h"
 #include "escapes.h"
 
+#define OOLONG_STYLE_CLEAR_STRING (wchar_t*)U"\033[0m"
+
 enum oolong_style_e
 {
     OOLONG_STYLE_CLEAR              = 0,
