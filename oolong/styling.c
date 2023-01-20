@@ -5,24 +5,6 @@
 
 #include "styling.h"
 
-#define OOLONG_TEXT_NORMAL "\033[0m"
-#define OOLONG_TEXT_BOLD "\033[1m"
-#define OOLONG_TEXT_DIM "\033[2m"
-#define OOLONG_TEXT_ITALIC "\033[3m"
-#define OOLONG_TEXT_UNDERLINE "\033[4m"
-#define OOLONG_TEXT_BLINK "\033[5m"
-#define OOLONG_TEXT_INVERTED "\033[7m"
-#define OOLONG_TEXT_HIDDEN "\033[8m"
-
-#define OOLONG_TEXT_HIGHIGHT_BLACK "\033[40m"
-#define OOLONG_TEXT_HIGHIGHT_RED "\033[41m"
-#define OOLONG_TEXT_HIGHIGHT_GREEN "\033[42m"
-#define OOLONG_TEXT_HIGHIGHT_YELLOW "\033[43m"
-#define OOLONG_TEXT_HIGHIGHT_BLUE "\033[44m"
-#define OOLONG_TEXT_HIGHIGHT_PURPLE "\033[45m"
-#define OOLONG_TEXT_HIGHIGHT_CYAN "\033[46m"
-#define OOLONG_TEXT_HIGHIGHT_WHITE "\033[47m"
-
 static const wchar_t* style_escapes[] =
 {
     [ OOLONG_STYLE_CLEAR             ] = (wchar_t*)U"\033[0m",
@@ -47,34 +29,38 @@ static const wchar_t* style_escapes[] =
     [ OOLONG_STYLE_BACKGROUND_BLACK  ] = (wchar_t*)U"\033[40m",
 };
 
-oolong_style_set_t oolong_style_set_create(oolong_style_t style)
+oolong_style_set_t* oolong_style_set_create()
 {
-    oolong_style_set_t style_set = calloc(2, sizeof(oolong_style_t));
-    style_set[0] = style;
-    style_set[1] = OOLONG_STYLE_SET_TERMINATOR;
+    oolong_style_set_t* style_set = calloc(1, sizeof(wchar_t));
+    style_set[0] = U'\0';
     return style_set;
 }
 
-oolong_error_t oolong_style_set_add(oolong_style_set_t* style_set, oolong_style_t style)
+oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style_t style)
 {
-    if (style_set == NULL || *style_set == NULL || style == OOLONG_STYLE_SET_TERMINATOR)
+    if (style_set == NULL)
         return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
     
     size_t length = 0;
-    for (; style_set[length] != NULL; length++);
+    for (; (*style_set)[length] != U'\0'; length++);
+    size_t new_length = length + wcslen(style_escapes[style]);
     
-    oolong_style_set_t new_set = reallocarray(style_set, length + 1, sizeof(oolong_style_t));
+    oolong_style_set_t* new_set = reallocarray(style_set, new_length, sizeof(oolong_style_t));
 
     if (new_set == NULL)
         return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
 
     *style_set = new_set;
-    (*style_set)[length - 1] = style;
-    (*style_set)[length] = OOLONG_STYLE_SET_TERMINATOR;
+
+    for (size_t i = 0; i < new_length; i++)
+        (*style_set)[i + length] = style_escapes[style][i];
+    
+    /* Probably not needed, but gives peace of mind. :D */
+    (*style_set)[new_length] = U'\0';
     return OOLONG_ERROR_NONE;
 }
 
-oolong_error_t oolong_style_set_destroy(oolong_style_set_t style_set)
+oolong_error_t oolong_style_set_destroy(oolong_style_set_t* style_set)
 {
     if (style_set == NULL)
         return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);

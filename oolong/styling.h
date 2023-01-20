@@ -9,7 +9,6 @@
 
 enum oolong_style_e
 {
-    OOLONG_STYLE_SET_TERMINATOR     = -1,
     OOLONG_STYLE_CLEAR              = 0,
     OOLONG_STYLE_ITALIC             = 1,
     OOLONG_STYLE_BOLD               = 2,
@@ -33,20 +32,20 @@ enum oolong_style_e
 };
 
 typedef enum oolong_style_e oolong_style_t;
-typedef oolong_style_t* oolong_style_set_t;
+typedef wchar_t oolong_style_set_t;
 
 /*
  * Create a new style set.
  */
-oolong_style_set_t oolong_style_set_create(oolong_style_t style);
+oolong_style_set_t* oolong_style_set_create();
 
 /*
  * Add a style to the given style set.
  */
-oolong_error_t oolong_style_set_add(oolong_style_set_t* style_set, oolong_style_t style);
+oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style_t style);
 
 /*
  * Free all memory used by the given style set.
  */
-oolong_error_t oolong_style_set_destroy(oolong_style_set_t style_set);
+oolong_error_t oolong_style_set_destroy(oolong_style_set_t* style_set);
 
