@@ -120,6 +120,13 @@ void oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view);
  *
  * If the given stack view pointer is NULL, or if it contains less than two
  * elements, then this function does nothing.
+ *
+ * Since I beleive in good documentation I'll tell you that if you have 
+ * SIZE_MAX elements then this function will break, since it detects the 
+ * underflow of size_t using that constant making it impossible to select. I 
+ * dont think anyone needs more that even 4 bits to store their maximum index 
+ * though, and if you do... well, lets just say you should work on your UI a 
+ * bit...
  */
 void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view);
 

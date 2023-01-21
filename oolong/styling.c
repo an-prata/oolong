@@ -7,26 +7,26 @@
 
 static const wchar_t* style_escapes[] =
 {
-    [ OOLONG_STYLE_CLEAR             ] = (wchar_t*)U"\033[0m",
-    [ OOLONG_STYLE_ITALIC            ] = (wchar_t*)U"\033[3m",
-    [ OOLONG_STYLE_BOLD              ] = (wchar_t*)U"\033[1m",
-    [ OOLONG_STYLE_UNDERLINE         ] = (wchar_t*)U"\033[4m",
-    [ OOLONG_STYLE_RED               ] = (wchar_t*)U"\033[31m",
-    [ OOLONG_STYLE_GREEN             ] = (wchar_t*)U"\033[32m",
-    [ OOLONG_STYLE_BLUE              ] = (wchar_t*)U"\033[34m",
-    [ OOLONG_STYLE_YELLOW            ] = (wchar_t*)U"\033[33m",
-    [ OOLONG_STYLE_PURPLE            ] = (wchar_t*)U"\033[35m",
-    [ OOLONG_STYLE_CYAN              ] = (wchar_t*)U"\033[36m",
-    [ OOLONG_STYLE_WHITE             ] = (wchar_t*)U"\033[37m",
-    [ OOLONG_STYLE_BLACK             ] = (wchar_t*)U"\033[30m",
-    [ OOLONG_STYLE_BACKGROUND_RED    ] = (wchar_t*)U"\033[41m",
-    [ OOLONG_STYLE_BACKGROUND_GREEN  ] = (wchar_t*)U"\033[42m",
-    [ OOLONG_STYLE_BACKGROUND_BLUE   ] = (wchar_t*)U"\033[44m",
-    [ OOLONG_STYLE_BACKGROUND_YELLOW ] = (wchar_t*)U"\033[43m",
-    [ OOLONG_STYLE_BACKGROUND_PURPLE ] = (wchar_t*)U"\033[45m",
-    [ OOLONG_STYLE_BACKGROUND_CYAN   ] = (wchar_t*)U"\033[46m",
-    [ OOLONG_STYLE_BACKGROUND_WHITE  ] = (wchar_t*)U"\033[47m",
-    [ OOLONG_STYLE_BACKGROUND_BLACK  ] = (wchar_t*)U"\033[40m",
+    [ OOLONG_STYLE_CLEAR             ] = L"\033[0m",
+    [ OOLONG_STYLE_ITALIC            ] = L"\033[3m",
+    [ OOLONG_STYLE_BOLD              ] = L"\033[1m",
+    [ OOLONG_STYLE_UNDERLINE         ] = L"\033[4m",
+    [ OOLONG_STYLE_RED               ] = L"\033[31m",
+    [ OOLONG_STYLE_GREEN             ] = L"\033[32m",
+    [ OOLONG_STYLE_BLUE              ] = L"\033[34m",
+    [ OOLONG_STYLE_YELLOW            ] = L"\033[33m",
+    [ OOLONG_STYLE_PURPLE            ] = L"\033[35m",
+    [ OOLONG_STYLE_CYAN              ] = L"\033[36m",
+    [ OOLONG_STYLE_WHITE             ] = L"\033[37m",
+    [ OOLONG_STYLE_BLACK             ] = L"\033[30m",
+    [ OOLONG_STYLE_BACKGROUND_RED    ] = L"\033[41m",
+    [ OOLONG_STYLE_BACKGROUND_GREEN  ] = L"\033[42m",
+    [ OOLONG_STYLE_BACKGROUND_BLUE   ] = L"\033[44m",
+    [ OOLONG_STYLE_BACKGROUND_YELLOW ] = L"\033[43m",
+    [ OOLONG_STYLE_BACKGROUND_PURPLE ] = L"\033[45m",
+    [ OOLONG_STYLE_BACKGROUND_CYAN   ] = L"\033[46m",
+    [ OOLONG_STYLE_BACKGROUND_WHITE  ] = L"\033[47m",
+    [ OOLONG_STYLE_BACKGROUND_BLACK  ] = L"\033[40m",
 };
 
 oolong_style_set_t* oolong_style_set_create()
@@ -42,10 +42,10 @@ oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style
         return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
     
     size_t length = 0;
-    for (; (*style_set)[length] != U'\0'; length++);
+    for (; (*style_set)[length] != L'\0'; length++);
     size_t new_length = length + wcslen(style_escapes[style]);
     
-    oolong_style_set_t* new_set = reallocarray(style_set, new_length, sizeof(oolong_style_t));
+    oolong_style_set_t* new_set = reallocarray(*style_set, new_length, sizeof(oolong_style_t));
 
     if (new_set == NULL)
         return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
@@ -56,7 +56,7 @@ oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style
         (*style_set)[i + length] = style_escapes[style][i];
     
     /* Probably not needed, but gives peace of mind. :D */
-    (*style_set)[new_length] = U'\0';
+    (*style_set)[new_length] = L'\0';
     return OOLONG_ERROR_NONE;
 }
 
