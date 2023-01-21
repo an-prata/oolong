@@ -48,20 +48,29 @@ error:
     return KEY_ERROR;
 }
 
+/*
+ * To clear a warning for incompatiable pointer for the atexit() function.
+ */
+static void restore_terminal_atexit(void)
+{
+    oolong_restore_canonical_input();
+}
+
 oolong_error_t oolong_disable_canonical_input(void)
 {
     if (tcgetattr(STDIN_FILENO, &original_terminal_state))
-        return OOLONG_ERROR_FAILED_IO_READ;
+        return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
     
     terminal_attributes_t non_canonical = original_terminal_state;
     
-    non_canonical.c_iflag &= ~(ICANON | ECHO);  /* Dont wait for newline and dont echo typed characters. */
-    non_canonical.c_cc[VMIN] = 0;               /* Set minimum bytes from read to 0. */
+    non_canonical.c_lflag &= ~(ICANON | ECHO);  /* Dont wait for newline and dont echo typed characters. */
+    non_canonical.c_cc[VMIN] = 1;               /* Set minimum bytes from read to 1. */
     non_canonical.c_cc[VTIME] = 0;              /* Dont wait for input with read. */
     
     if (tcsetattr(STDIN_FILENO, TCSANOW, &non_canonical))
-        return OOLONG_ERROR_FAILED_IO_WRITE;
+        return oolong_error_record(OOLONG_ERROR_FAILED_IO_WRITE);
     
+    atexit(restore_terminal_atexit);
     return OOLONG_ERROR_NONE;
 }
 
