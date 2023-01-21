@@ -5,12 +5,12 @@
 
 PROJECT_NAME="$(basename $(pwd))"
 SOURCE_FILES=$(find "./$PROJECT_NAME/" -name "*.c")
-mkdir bin -p
+mkdir build -p
 
 for FILE in $SOURCE_FILES; do
-    gcc -c $FILE -o "bin/$(basename $FILE).o"
+    gcc -c $FILE -o "build/$(basename $FILE).o"
 done
 
-OBJECT_FILES=$(find "./bin/" -name "*.o" -printf "%p ")
+OBJECT_FILES=$(find "./build/" -name "*.o" -printf "%p ")
 
-ar rcs "bin/$PROJECT_NAME.a" $OBJECT_FILES
+ar rcs "build/$PROJECT_NAME.a" $OBJECT_FILES
