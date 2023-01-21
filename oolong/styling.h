@@ -3,6 +3,9 @@
  * See LICENSE file in repository root for complete license text.
  */
 
+#ifndef STYLING_H
+#define STYLING_H
+
 #include <wchar.h>
 #include "error.h"
 #include "escapes.h"
@@ -50,4 +53,6 @@ oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style
  * Free all memory used by the given style set.
  */
 oolong_error_t oolong_style_set_destroy(oolong_style_set_t* style_set);
+
+#endif // STYLING_H
 

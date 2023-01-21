@@ -3,6 +3,9 @@
  * See LICENSE file in repository root for complete license text.
  */
 
+#ifndef STACK_VIEW_H
+#define STACK_VIEW_H
+
 #include <wchar.h>
 #include <stdio.h>
 #include "styling.h"
@@ -124,4 +127,6 @@ void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view);
  * Prints the given stack view to the given file.
  */
 oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* file);
+
+#endif // STACK_VIEW_H
 

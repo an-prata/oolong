@@ -3,6 +3,9 @@
  * See LICENSE file in repository root for complete license text.
  */
 
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
+
 #include <limits.h>
 #include "error.h"
 
@@ -135,3 +138,4 @@ oolong_error_t oolong_restore_canonical_input(void);
  */
 oolong_key_t oolong_keyboard_get_key(void);
 
+#endif // KEYBOARD_H

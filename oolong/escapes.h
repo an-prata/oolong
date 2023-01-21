@@ -3,6 +3,9 @@
  * See LICENSE file in repository root for complete license text.
  */
 
+#ifndef ESCAPES_H
+#define ESCAPES_H
+
 #include "error.h"
 
 #define OOLONG_TEXT_NORMAL "\033[0m"
@@ -29,4 +32,6 @@
 #define oolong_terminal_show_cursor() printf("\033[?25h")
 #define oolong_terminal_set_cursor_position(column, row) printf("\033[%zu;%zuH", column, row);
 #define oolong_terminal_clear() printf("\033[2J")
+
+#endif // ESCAPES_H
 
