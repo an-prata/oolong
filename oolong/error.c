@@ -16,7 +16,7 @@ oolong_error_t oolong_error_debug_record(oolong_error_t error, const char* file,
     recorded_errors |= error;
 
 #ifdef OOLONG_EXIT_ON_ERROR
-    fprintf(stderr, "%s: line %zu of %s in %s", __func__, line, function, file);
+    fprintf(stderr, "%s: line %zu of %s in %s\n", __func__, line, function, file);
     exit(-1);
 #endif // OOLONG_EXIT_ON_ERROR
     
