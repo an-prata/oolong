@@ -26,12 +26,12 @@
 #define OOLONG_TEXT_HIGHIGHT_CYAN "\033[46m"
 #define OOLONG_TEXT_HIGHIGHT_WHITE "\033[47m"
 
-#define oolong_terminal_enter_alternate_screen() printf("\033[?47h")
-#define oolong_terminal_exit_alternate_screen() printf("\033[?47l")
-#define oolong_terminal_hide_cursor() printf("\033[?25l")
-#define oolong_terminal_show_cursor() printf("\033[?25h")
-#define oolong_terminal_set_cursor_position(column, row) printf("\033[%zu;%zuH", column, row);
-#define oolong_terminal_clear() printf("\033[2J")
+#define oolong_terminal_enter_alternate_screen() wprintf(L"\033[?47h")
+#define oolong_terminal_exit_alternate_screen() wprintf(L"\033[?47l")
+#define oolong_terminal_hide_cursor() wprintf(L"\033[?25l")
+#define oolong_terminal_show_cursor() wprintf(L"\033[?25h")
+#define oolong_terminal_set_cursor_position(column, row) wprintf(L"\033[%zu;%zuH", column, row);
+#define oolong_terminal_clear() wprintf(L"\033[2J")
 
 #endif // ESCAPES_H
 
