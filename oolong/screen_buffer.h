@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <wchar.h>
+#include <locale.h>
 #include "error.h"
 
 /* For convinience, any locale can be used but this is whats tested. */
