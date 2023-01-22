@@ -133,12 +133,45 @@ static oolong_error_t print_centered_aligned(oolong_stack_view_t* stack_view, fi
     if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
         return OOLONG_ERROR_FAILED_IO_READ;
 
-    size_t start_column = screen_dimensions.columns - (stack_view->options->view_side_margin + stack_view->options->element_width);
-    start_column = (start_column / 2) - 1;
     oolong_error_t running_error = OOLONG_ERROR_NONE;
     
     for (size_t element = 0; stack_view->elements[element] != NULL; element++)
     {
+        size_t start_column = 0;
+        size_t default_start = screen_dimensions.columns - (stack_view->options->element_width + stack_view->options->element_padding) - 1;
+        default_start /= 2;
+
+        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+        {
+            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
+            start_column /= 2;
+
+            if (start_column > default_start)
+                start_column = default_start;
+        }
+        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_LABEL)
+        {
+            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
+            start_column /= 2;
+        }
+        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+        {
+            if (stack_view->elements[element]->data.text_box.entered_text == NULL)
+                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
+            else if (stack_view->elements[element]->data.text_box.entered_text[0] != L'\0')
+                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
+            else if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
+                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
+            else
+                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
+
+            start_column = screen_dimensions.columns - start_column - 1;
+            start_column /= 2;
+
+            if (start_column > default_start)
+                start_column = default_start;
+        }
+        
         for (size_t i = 0; i < start_column; i++)
             fputwc(L' ', file);
 
@@ -180,11 +213,44 @@ static oolong_error_t print_right_aligned(oolong_stack_view_t* stack_view, file_
     if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
         return OOLONG_ERROR_FAILED_IO_READ;
 
-    size_t start_column = screen_dimensions.columns - (stack_view->options->view_side_margin + stack_view->options->element_width);
     oolong_error_t running_error = OOLONG_ERROR_NONE;
     
     for (size_t element = 0; stack_view->elements[element] != NULL; element++)
     {
+        size_t start_column = 0;
+        size_t default_start = screen_dimensions.columns - (stack_view->options->element_width + stack_view->options->element_padding) - 1;
+
+        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+        {
+            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
+            start_column -= stack_view->options->view_side_margin + stack_view->options->element_padding;
+
+            if (start_column > default_start)
+                start_column = default_start;
+        }
+        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_LABEL)
+        {
+            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
+            start_column -= stack_view->options->view_side_margin + stack_view->options->element_padding;
+        }
+        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+        {
+            if (stack_view->elements[element]->data.text_box.entered_text == NULL)
+                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
+            else if (stack_view->elements[element]->data.text_box.entered_text[0] != L'\0')
+                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
+            else if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
+                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
+            else
+                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
+
+            start_column = screen_dimensions.columns - start_column - 1;
+            start_column -= stack_view->options->view_side_margin + stack_view->options->element_padding;
+
+            if (start_column > default_start)
+                start_column = default_start;
+        }
+
         for (size_t i = 0; i < start_column; i++)
             fputwc(L' ', file);
 
