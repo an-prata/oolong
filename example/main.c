@@ -47,7 +47,7 @@ int main()
     {
         .data.button = 
         {
-            .state = OOLONG_ELEMENT_STATE_SELECTED,
+            .state = OOLONG_ELEMENT_STATE_NORMAL,
             .text = L"yellow",
             .style = oolong_style_set_create(),
             .style_selected = oolong_style_set_create()
@@ -69,14 +69,34 @@ int main()
         .identifier = 3
     };
 
+    oolong_stack_view_element_t text_box =
+    {
+        .data.text_box =
+        {
+            .state = OOLONG_ELEMENT_STATE_SELECTED,
+            .display_text = L"enter text!!",
+            .entered_text = NULL,
+            .display_style = oolong_style_set_create(),
+            .entered_style = oolong_style_set_create(),
+            .display_style_selected = oolong_style_set_create(),
+            .entered_style_selected = oolong_style_set_create()
+        },
+        .type = OOLONG_ELEMENT_TYPE_TEXT_BOX,
+        .identifier = 4
+    };
+
     oolong_style_set_add(&button0.data.button.style_selected, OOLONG_STYLE_BACKGROUND_CYAN);
     oolong_style_set_add(&button1.data.button.style_selected, OOLONG_STYLE_BACKGROUND_CYAN);
     oolong_style_set_add(&button2.data.button.style_selected, OOLONG_STYLE_BACKGROUND_CYAN);
 
+    oolong_style_set_add(&text_box.data.text_box.display_style_selected, OOLONG_STYLE_BACKGROUND_BLUE);
+    oolong_style_set_add(&text_box.data.text_box.entered_style_selected, OOLONG_STYLE_BACKGROUND_BLUE);
+    
     oolong_stack_view_add_element(view, &title);
     oolong_stack_view_add_element(view, &button0);
     oolong_stack_view_add_element(view, &button1);
     oolong_stack_view_add_element(view, &button2);
+    oolong_stack_view_add_element(view, &text_box);
 
     oolong_terminal_enter_alternate_screen();
     oolong_disable_canonical_input();
@@ -87,6 +107,12 @@ int main()
         oolong_stack_view_print(view, stdout);
 
         oolong_key_t key = oolong_keyboard_get_key();
+
+        if (oolong_stack_view_get_is_text_box_active(view))
+        {
+            oolong_stack_view_active_text_box_register_key(view, key);
+            continue;
+        }
         
         if (key == KEY_LOWERCASE_J || key == KEY_J || key == KEY_DOWN)
             oolong_stack_view_select_next_element(view);
@@ -136,6 +162,9 @@ int main()
                     oolong_style_set_add(&button0.data.button.style_selected, OOLONG_STYLE_BACKGROUND_RED);
                     oolong_style_set_add(&button1.data.button.style_selected, OOLONG_STYLE_BACKGROUND_RED);
                     oolong_style_set_add(&button2.data.button.style_selected, OOLONG_STYLE_BACKGROUND_RED);
+                    break;
+                case (4):
+                    text_box.data.text_box.state = OOLONG_ELEMENT_STATE_ACTIVE;
                     break;
             }
         }

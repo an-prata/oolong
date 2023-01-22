@@ -6,9 +6,11 @@
 #ifndef STACK_VIEW_H
 #define STACK_VIEW_H
 
-#include <wchar.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <wchar.h>
 #include "styling.h"
+#include "keyboard.h"
 #include "error.h"
 
 enum oolong_alignment_e
@@ -21,14 +23,16 @@ enum oolong_alignment_e
 
 enum oolong_stack_view_element_type_e
 {
+    OOLONG_ELEMENT_TYPE_LABEL,
     OOLONG_ELEMENT_TYPE_BUTTON,
-    OOLONG_ELEMENT_TYPE_LABEL
+	OOLONG_ELEMENT_TYPE_TEXT_BOX
 };
 
 enum oolong_stack_view_element_state_e
 {
     OOLONG_ELEMENT_STATE_NORMAL,
     OOLONG_ELEMENT_STATE_SELECTED,
+	OOLONG_ELEMENT_STATE_ACTIVE,
     OOLONG_ELEMENT_STATE_DISABLED
 };
 
@@ -43,6 +47,7 @@ typedef struct oolong_stack_view_options_s oolong_stack_view_options_t;
 typedef struct oolong_stack_view_element_s oolong_stack_view_element_t;
 typedef struct oolong_stack_view_label_data_s oolong_stack_view_label_data_t;
 typedef struct oolong_stack_view_button_data_s oolong_stack_view_button_data_t;
+typedef struct oolong_stack_view_text_box_data_s oolong_stack_view_text_box_data_t;
 
 struct oolong_stack_view_options_s
 {
@@ -68,10 +73,22 @@ struct oolong_stack_view_button_data_s
     oolong_style_set_t* style_selected;       /* An array of wide string escape codes to style text while selected. */
 };
 
+struct oolong_stack_view_text_box_data_s
+{
+	wchar_t* display_text;                       /* Text to show while no text is entered by the user. */
+	wchar_t* entered_text;                       /* Text entered by the user. Should be initialized to NULL. */
+	oolong_stack_view_element_state_t state;     /* Text box state. */
+	oolong_style_set_t* display_style;           /* Style while showing display text. */
+	oolong_style_set_t* display_style_selected;  /* Style while showing display text and selected. */
+	oolong_style_set_t* entered_style;           /* Style while the user has entered text. */
+	oolong_style_set_t* entered_style_selected;  /* Style while the user has entered text and selected. */
+};
+
 union oolong_stack_view_element_data_u
 {
     oolong_stack_view_label_data_t label;
     oolong_stack_view_button_data_t button;
+	oolong_stack_view_text_box_data_t text_box;
 };
 
 struct oolong_stack_view_element_s
@@ -99,7 +116,7 @@ void oolong_stack_view_destroy(oolong_stack_view_t* stack_view);
 oolong_error_t oolong_stack_view_add_element(oolong_stack_view_t* stack_view, oolong_stack_view_element_t* element);
 
 /*
- * Gets the first selected element's identifier. -1 if none are found.
+ * Gets the first selected or active element's identifier. -1 if none are found.
  */
 enum_t oolong_stack_view_get_selected_identifier(oolong_stack_view_t* stack_view);
 
@@ -129,6 +146,22 @@ void oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view);
  * bit...
  */
 void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view);
+
+/*
+ * Returns true if the given stack view has an active text box.
+ */
+bool oolong_stack_view_get_is_text_box_active(oolong_stack_view_t* stack_view);
+
+/*
+ * Performs action denoted by the given key on the first active text box of the
+ * given view. Escape or enter will change the text boxes active status to
+ * selected.
+ *
+ * If no text box is active then this function returns with an invalid argument
+ * error. Check that a text box is active before calling, in the event that one
+ * is active all other input handling should stop.
+ */
+oolong_error_t oolong_stack_view_active_text_box_register_key(oolong_stack_view_t* stack_view, oolong_key_t key);
 
 /*
  * Prints the given stack view to the given file.

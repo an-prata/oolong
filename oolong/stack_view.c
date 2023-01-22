@@ -12,6 +12,54 @@ struct oolong_stack_view_s
     oolong_stack_view_element_t** elements;
 };
 
+static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box, oolong_stack_view_options_t* options, file_t* file)
+{
+    if (text_box->entered_text == NULL)
+    {
+        text_box->entered_text = calloc(1, sizeof(wchar_t));
+        text_box->entered_text[0] = L'\0';    
+    }
+    
+    if (text_box->state == OOLONG_ELEMENT_STATE_SELECTED && text_box->entered_text[0] != L'\0')
+        fwprintf(file, L"%ls", text_box->entered_style_selected);
+    else if (text_box->state == OOLONG_ELEMENT_STATE_SELECTED)
+        fwprintf(file, L"%ls", text_box->display_style_selected);
+    else if (text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
+        fwprintf(file, L"%ls", text_box->entered_style_selected);
+    else if (text_box->entered_text[0] != L'\0')
+        fwprintf(file, L"%ls", text_box->entered_style);
+    else
+        fwprintf(file, L"%ls", text_box->display_style);
+    
+    size_t printed_characters = 0;
+    
+    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
+        fputwc(L' ', file);
+
+    if (text_box->entered_text[0] != L'\0')
+        for (size_t start_index = printed_characters; text_box->entered_text[printed_characters - start_index] != L'\0'; printed_characters++)
+            fputwc(text_box->entered_text[printed_characters - start_index], file);
+    else if (text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
+        for (size_t start_index = printed_characters; text_box->entered_text[printed_characters - start_index] != L'\0'; printed_characters++)
+            fputwc(text_box->entered_text[printed_characters - start_index], file);
+    else
+        for (size_t start_index = printed_characters; text_box->display_text[printed_characters - start_index] != L'\0'; printed_characters++)
+            fputwc(text_box->display_text[printed_characters - start_index], file);
+
+    for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
+        fputwc(L' ', file);
+    
+    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
+        fputwc(L' ', file);
+
+    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
+
+    if (ferror(file))
+        return OOLONG_ERROR_FAILED_IO_WRITE;
+
+    return OOLONG_ERROR_NONE;
+}
+
 static oolong_error_t print_button(oolong_stack_view_button_data_t* button, oolong_stack_view_options_t* options, file_t* file)
 {
     if (button->state == OOLONG_ELEMENT_STATE_SELECTED)
@@ -71,9 +119,10 @@ static oolong_error_t print_element(oolong_stack_view_element_t* element, oolong
     {
         case (OOLONG_ELEMENT_TYPE_BUTTON):
             return print_button(&element->data.button, options, file);
-
         case (OOLONG_ELEMENT_TYPE_LABEL):
             return print_label(&element->data.label, options, file);
+        case (OOLONG_ELEMENT_TYPE_TEXT_BOX):
+            return print_text_box(&element->data.text_box, options, file);
     }
 }
 
@@ -201,9 +250,14 @@ enum_t oolong_stack_view_get_selected_identifier(oolong_stack_view_t* stack_view
         return -1;
 
     for (size_t index = 0; stack_view->elements[index] != NULL; index++)
+    {
         if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
             if (stack_view->elements[index]->data.button.state == OOLONG_ELEMENT_STATE_SELECTED)
                 return stack_view->elements[index]->identifier;
+        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+            if (stack_view->elements[index]->data.text_box.state == OOLONG_ELEMENT_STATE_SELECTED || stack_view->elements[index]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
+                return stack_view->elements[index]->identifier;
+    }
 
     return -1;
 }
@@ -215,27 +269,49 @@ void oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view)
 
     for (size_t index = 0; stack_view->elements[index] != NULL; index++)
     {
-        if (stack_view->elements[index]->type != OOLONG_ELEMENT_TYPE_BUTTON)
-            continue;
-
-        if (stack_view->elements[index]->data.button.state != OOLONG_ELEMENT_STATE_SELECTED)
-            continue;
+        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+        {
+            if (stack_view->elements[index]->data.button.state != OOLONG_ELEMENT_STATE_SELECTED)
+                continue;
         
-        stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
+            stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
+            goto select_next;
+        }
 
+        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+        {
+            if (stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_SELECTED && stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_ACTIVE)
+                continue;
+        
+            stack_view->elements[index]->data.text_box.state = OOLONG_ELEMENT_STATE_NORMAL;
+            goto select_next;
+        }
+
+        continue;
+
+    select_next:
         for (size_t next_selected = index + 1; next_selected != index; next_selected++)
         {
             if (stack_view->elements[next_selected] == NULL)
                 next_selected = 0;
-            
-            if (stack_view->elements[next_selected]->type != OOLONG_ELEMENT_TYPE_BUTTON)
-                continue;
+        
+            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+            {
+                if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
+                    continue;
 
-            if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
-                continue;
+                stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
+                return;
+            }
 
-            stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
-            return;
+            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+            {
+                if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
+                    continue;
+
+                stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
+                return;
+            }
         }
     }
 }
@@ -247,14 +323,27 @@ void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view)
 
     for (size_t index = 0; stack_view->elements[index] != NULL; index++)
     {
-        if (stack_view->elements[index]->type != OOLONG_ELEMENT_TYPE_BUTTON)
-            continue;
-
-        if (stack_view->elements[index]->data.button.state != OOLONG_ELEMENT_STATE_SELECTED)
-            continue;
+        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+        {
+            if (stack_view->elements[index]->data.button.state != OOLONG_ELEMENT_STATE_SELECTED)
+                continue;
         
-        stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
+            stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
+            goto select_previous;
+        }
 
+        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+        {
+            if (stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_SELECTED && stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_ACTIVE)
+                continue;
+        
+            stack_view->elements[index]->data.text_box.state = OOLONG_ELEMENT_STATE_NORMAL;
+            goto select_previous;
+        }
+
+        continue;
+
+    select_previous:
         for (size_t next_selected = index - 1; next_selected != index; next_selected--)
         {
             /*
@@ -266,16 +355,87 @@ void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view)
             if (next_selected == SIZE_MAX)
                 for (; stack_view->elements[next_selected + 1] != NULL; next_selected++);
 
-            if (stack_view->elements[next_selected]->type != OOLONG_ELEMENT_TYPE_BUTTON)
-                continue;
+            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+            {
+                if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
+                    continue;
 
-            if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
-                continue;
+                stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
+                return;
+            }
 
-            stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
-            return;
+            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+            {
+                if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
+                    continue;
+
+                stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
+                return;
+            }
         }
     }
+}
+
+bool oolong_stack_view_get_is_text_box_active(oolong_stack_view_t* stack_view)
+{
+    for (size_t element = 0; stack_view->elements[element] != NULL; element++)
+        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+            if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
+                return true;
+
+    return false;
+}
+
+oolong_error_t oolong_stack_view_active_text_box_register_key(oolong_stack_view_t* stack_view, oolong_key_t key)
+{
+    if (stack_view == NULL)
+        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+    
+    oolong_stack_view_text_box_data_t* text_box;
+    
+    for (size_t element = 0; stack_view->elements[element] != NULL; element++)
+        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+            if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
+                text_box = &stack_view->elements[element]->data.text_box;
+
+    if (key == KEY_ESCAPE || key == KEY_RETURN)
+    {
+        text_box->state = OOLONG_ELEMENT_STATE_SELECTED;
+        return OOLONG_ERROR_NONE;
+    }
+
+    if (text_box->entered_text == NULL)
+    {
+        text_box->entered_text = calloc(1, sizeof(wchar_t));
+        text_box->entered_text[0] = L'\0';
+    }
+
+    if (key == KEY_BACKSPACE)
+    {
+        if (text_box->entered_text[0] == L'\0')
+            return OOLONG_ERROR_NONE;
+
+        size_t length = 0;
+        for (; text_box->entered_text[length] != L'\0'; length++);
+        text_box->entered_text[length - 1] = L'\0';
+        return OOLONG_ERROR_NONE;
+    }
+
+    if (32 > key || 126 < key)
+        return OOLONG_ERROR_NONE;
+    
+    size_t length = 0;
+    for (; text_box->entered_text[length] != L'\0'; length++);
+
+    wchar_t* new_text = reallocarray(text_box->entered_text, length + 2, sizeof(wchar_t));
+
+    if (new_text == NULL)
+        return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
+
+    text_box->entered_text = new_text;
+    text_box->entered_text[length] = key;
+    text_box->entered_text[length + 1] = L'\0';
+    return OOLONG_ERROR_NONE;
 }
 
 oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* file)
