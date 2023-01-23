@@ -5,11 +5,20 @@
 
 PROJECT_NAME="$(basename $(pwd))"
 SOURCE_FILES=$(find "./$PROJECT_NAME/" -name "*.c")
+HEADER_FILES=$(find "./$PROJECT_NAME/" -name "*.h")
+HEADER_LIST=""
+
+for HEADER in $HEADER_FILES; do
+    HEADER_LIST="$HEADER_LIST $HEADER"
+done
+
 mkdir build -p
 
 for FILE in $SOURCE_FILES; do
     gcc -c $FILE -o "build/$(basename $FILE).o"
 done
+
+tar --create --file build/oolong_headers.tar $HEADER_LIST 
 
 OBJECT_FILES=$(find "./build/" -name "*.o" -printf "%p ")
 
