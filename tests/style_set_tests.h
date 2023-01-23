@@ -3,12 +3,12 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef ERROR_TESTS_H
-#define ERROR_TESTS_H
+#ifndef STYLE_SET_TESTS_H
+#define STYLE_SET_TESTS_H
 
 #include "include/scrutiny.h"
 
-SCRUTINY_UNIT_TEST error_test(void);
+SCRUTINY_UNIT_TEST style_set_add_test(void);
 
-#endif // ERROR_TESTS_H
+#endif // STYLE_SET_TESTS_H
 

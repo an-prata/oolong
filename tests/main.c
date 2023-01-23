@@ -6,12 +6,14 @@
 #include <stdio.h>
 #include "include/scrutiny.h"
 #include "error_tests.h"
+#include "style_set_tests.h"
 
 int main()
 {
     scrutiny_unit_test_t unit_tests[] =
     {
         error_test,
+        style_set_add_test,
         NULL
     };
 
