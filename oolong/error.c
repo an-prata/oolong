@@ -7,19 +7,25 @@
 #include "error.h"
 
 static oolong_error_t recorded_errors = OOLONG_ERROR_NONE;
+static bool exit_on_error = true;
+
+void oolong_error_set_exit_on_error(bool exit_on_error_value)
+{
+    exit_on_error = exit_on_error_value;
+}
 
 oolong_error_t oolong_error_debug_record(oolong_error_t error, const char* file, const char* function, size_t line)
 {
     if (error == OOLONG_ERROR_NONE)
         return error;
 
-    recorded_errors |= error;
+    if (exit_on_error)
+    {
+        fprintf(stderr, "%s: line %zu of %s in %s\n", __func__, line, function, file);
+        exit(-1);
+    }
 
-#ifdef OOLONG_EXIT_ON_ERROR
-    fprintf(stderr, "%s: line %zu of %s in %s\n", __func__, line, function, file);
-    exit(-1);
-#endif // OOLONG_EXIT_ON_ERROR
-    
+    recorded_errors |= error;
     return error;
 }
 

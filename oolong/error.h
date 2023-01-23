@@ -7,9 +7,7 @@
 #define OOLONG_ERROR_H
 
 #include <stdlib.h>
-
-/* Remove this to prevent exiting on errors. */ 
-#define OOLONG_EXIT_ON_ERROR
+#include <stdbool.h>
 
 #ifndef __GNUC__
 #warning "OOLONG: not compiling with GCC, error.h utilises GCC compiler extensions."
@@ -28,6 +26,11 @@ enum oolong_error_e
 };
 
 typedef enum oolong_error_e oolong_error_t;
+
+/*
+ * Set whether or not oolong exits on errors.
+ */
+void oolong_error_set_exit_on_error(bool exit_on_error);
 
 /*
  * Records the given error, recording the same type of error twice, without
