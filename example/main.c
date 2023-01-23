@@ -17,7 +17,7 @@ int main()
         .element_width = 20,
         .view_side_margin = 2,
         .view_top_margin = 2,
-        .align = OOLONG_ALIGN_LEFT
+        .align = OOLONG_ALIGN_WIDTH
     };
     
     /*
@@ -63,6 +63,7 @@ int main()
 
     oolong_style_set_add(&title.data.label.style, OOLONG_STYLE_BOLD);
     oolong_style_set_add(&title.data.label.style, OOLONG_STYLE_ITALIC);
+	oolong_style_set_add(&title.data.label.style, OOLONG_STYLE_BACKGROUND_RED);
 
     /*
      * Now lets make some buttons, these buttons will change all of the view's
