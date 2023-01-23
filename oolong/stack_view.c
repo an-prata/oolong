@@ -46,12 +46,25 @@ static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box
         for (size_t start_index = printed_characters; text_box->display_text[printed_characters - start_index] != L'\0'; printed_characters++)
             fputwc(text_box->display_text[printed_characters - start_index], file);
 
-    for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
-        fputwc(L' ', file);
-    
-    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-        fputwc(L' ', file);
+    if (options->align != OOLONG_ALIGN_WIDTH)
+    {
+        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
+            fputwc(L' ', file);
 
+        for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
+            fputwc(L' ', file);
+    }
+    else
+    {
+        oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+
+        if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
+            return OOLONG_ERROR_FAILED_IO_READ;
+
+        for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+            fputwc(L' ', file);
+    }
+    
     fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
 
     if (ferror(file))
@@ -75,11 +88,24 @@ static oolong_error_t print_button(oolong_stack_view_button_data_t* button, oolo
     for (size_t start_index = printed_characters; button->text[printed_characters - start_index] != L'\0'; printed_characters++)
         fputwc(button->text[printed_characters - start_index], file);
 
-    for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
-        fputwc(L' ', file);
-    
-    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-        fputwc(L' ', file);
+    if (options->align != OOLONG_ALIGN_WIDTH)
+    {
+        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
+            fputwc(L' ', file);
+
+        for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
+            fputwc(L' ', file);
+    }
+    else
+    {
+        oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+
+        if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
+            return OOLONG_ERROR_FAILED_IO_READ;
+
+        for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+            fputwc(L' ', file);
+    }
 
     fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
 
@@ -93,17 +119,32 @@ static oolong_error_t print_label(oolong_stack_view_label_data_t* label, oolong_
 {
     size_t printed_characters = 0;
 
-    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-        fputwc(L' ', file);
-
     fwprintf(file, L"%ls", label->style);
-    fwprintf(file, L"%ls", label->text);
 
-    for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
-        fputwc(L' ', file);
-    
     for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
         fputwc(L' ', file);
+
+    for (size_t start_index = printed_characters; label->text[printed_characters - start_index] != L'\0'; printed_characters++)
+        fputwc(label->text[printed_characters - start_index], file);
+
+    if (options->align != OOLONG_ALIGN_WIDTH)
+    {
+        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
+            fputwc(L' ', file);
+
+        for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
+            fputwc(L' ', file);
+    }
+    else
+    {
+        oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+
+        if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
+            return OOLONG_ERROR_FAILED_IO_READ;
+
+        for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+            fputwc(L' ', file);
+    }
 
     fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
 
@@ -525,6 +566,9 @@ oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* 
 
         case (OOLONG_ALIGN_RIGHT):
             return oolong_error_record(print_right_aligned(stack_view, file));
+
+        case (OOLONG_ALIGN_WIDTH):
+            return oolong_error_record(print_left_aligned(stack_view, file));
     }
 
     return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
