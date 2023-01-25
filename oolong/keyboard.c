@@ -91,18 +91,22 @@ oolong_key_t oolong_keyboard_get_key(void)
     ssize_t in_size = read(STDIN_FILENO, in, READ_SIZE);
 
     if (in_size < 0)
-        goto error;
+    {
+        oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
+        return KEY_ERROR;
+    }
 
     if (in_size == 1)
         return (key_t)in[0];
 
-    if (in_size == 2)
-        goto error;
-    
-    return interpret_escape_sequence(in, in_size);
+    if (in_size > 1 && in[0] == KEY_ESCAPE)
+        return interpret_escape_sequence(in, in_size);
 
-error:
-    oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
-    return KEY_ERROR;
+    /*
+     * Getting here means that more that 1 byte was read and the first byte was
+     * not an escape key - likely a copy and paste or multibyte character.
+     */
+    
+    return KEY_STRING;
 }
 
