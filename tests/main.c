@@ -19,5 +19,12 @@ int main()
 
     scrutiny_run_tests(unit_tests);
     scrutiny_output_test_results(stdout);
+
+    scrutiny_test_results_t results = scrutiny_get_test_results();
+
+    if (results.failed_cases > 0)
+        exit(EXIT_FAILURE);
+    else
+        exit(EXIT_SUCCESS);
 }
 
