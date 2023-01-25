@@ -3,8 +3,9 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#include "stack_view.h"
+#include <stdlib.h>
 #include "screen_buffer.h"
+#include "stack_view.h"
 
 struct oolong_stack_view_s
 {
@@ -36,15 +37,22 @@ static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box
     for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
         fputwc(L' ', file);
 
-    if (text_box->entered_text[0] != L'\0')
-        for (size_t start_index = printed_characters; text_box->entered_text[printed_characters - start_index] != L'\0'; printed_characters++)
-            fputwc(text_box->entered_text[printed_characters - start_index], file);
-    else if (text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
-        for (size_t start_index = printed_characters; text_box->entered_text[printed_characters - start_index] != L'\0'; printed_characters++)
-            fputwc(text_box->entered_text[printed_characters - start_index], file);
+    if (text_box->entered_text[0] != L'\0' || text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
+    {
+        for (size_t index = 0; text_box->entered_text[index] != L'\0'; index++)
+        {
+            fputwc(text_box->entered_text[index], file);
+            printed_characters += wcwidth(text_box->entered_text[index]);
+        }
+    }
     else
-        for (size_t start_index = printed_characters; text_box->display_text[printed_characters - start_index] != L'\0'; printed_characters++)
-            fputwc(text_box->display_text[printed_characters - start_index], file);
+    {
+        for (size_t index = 0; text_box->display_text[index] != L'\0'; index++)
+        {
+            fputwc(text_box->display_text[index], file);
+            printed_characters += wcwidth(text_box->display_text[index]);
+        }
+    }
 
     if (options->align != OOLONG_ALIGN_WIDTH)
     {
@@ -85,8 +93,11 @@ static oolong_error_t print_button(oolong_stack_view_button_data_t* button, oolo
     for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
         fputwc(L' ', file);
 
-    for (size_t start_index = printed_characters; button->text[printed_characters - start_index] != L'\0'; printed_characters++)
-        fputwc(button->text[printed_characters - start_index], file);
+    for (size_t index = 0; button->text[index] != L'\0'; index++)
+    {
+        fputwc(button->text[index], file);
+        printed_characters += wcwidth(button->text[index]);
+    }
 
     if (options->align != OOLONG_ALIGN_WIDTH)
     {
@@ -124,8 +135,11 @@ static oolong_error_t print_label(oolong_stack_view_label_data_t* label, oolong_
     for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
         fputwc(L' ', file);
 
-    for (size_t start_index = printed_characters; label->text[printed_characters - start_index] != L'\0'; printed_characters++)
-        fputwc(label->text[printed_characters - start_index], file);
+    for (size_t index = 0; label->text[index] != L'\0'; index++)
+    {
+        fputwc(label->text[index], file);
+        printed_characters += wcwidth(label->text[index]);
+    }
 
     if (options->align != OOLONG_ALIGN_WIDTH)
     {
