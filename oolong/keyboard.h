@@ -11,7 +11,7 @@
 
 enum oolong_key_e
 {
-    KEY_ERROR = INT_MIN, /* Failed to get key. */
+    KEY_ERROR = INT_MIN,      /* Failed to get key. */
     KEY_NULL          = 0,
     KEY_TAB           = 9,
     KEY_RETURN        = 10,

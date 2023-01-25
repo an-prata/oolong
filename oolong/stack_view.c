@@ -16,17 +16,12 @@ struct oolong_stack_view_s
 static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box, oolong_stack_view_options_t* options, file_t* file)
 {
     if (text_box->entered_text == NULL)
-    {
         text_box->entered_text = calloc(1, sizeof(wchar_t));
-        text_box->entered_text[0] = L'\0';    
-    }
     
-    if (text_box->state == OOLONG_ELEMENT_STATE_SELECTED && text_box->entered_text[0] != L'\0')
+    if ((text_box->state == OOLONG_ELEMENT_STATE_SELECTED && text_box->entered_text[0] != L'\0') || text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
         fwprintf(file, L"%ls", text_box->entered_style_selected);
     else if (text_box->state == OOLONG_ELEMENT_STATE_SELECTED)
         fwprintf(file, L"%ls", text_box->display_style_selected);
-    else if (text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
-        fwprintf(file, L"%ls", text_box->entered_style_selected);
     else if (text_box->entered_text[0] != L'\0')
         fwprintf(file, L"%ls", text_box->entered_style);
     else
@@ -54,29 +49,26 @@ static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box
         }
     }
 
-    if (options->align != OOLONG_ALIGN_WIDTH)
-    {
-        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-
-        for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-    }
-    else
+    if (options->align == OOLONG_ALIGN_WIDTH)
     {
         oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
             return OOLONG_ERROR_FAILED_IO_READ;
 
-        for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+        for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+            fputwc(L' ', file);
+    }
+    else
+    {
+        for (; printed_characters < options->element_width - options->element_padding; printed_characters++)
             fputwc(L' ', file);
     }
     
-    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
+    for (size_t index = 0; index < options->element_padding; index++)
+        fputwc(L' ', file);
 
-    if (ferror(file))
-        return OOLONG_ERROR_FAILED_IO_WRITE;
+    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
 
     return OOLONG_ERROR_NONE;
 }
@@ -99,29 +91,26 @@ static oolong_error_t print_button(oolong_stack_view_button_data_t* button, oolo
         printed_characters += wcwidth(button->text[index]);
     }
 
-    if (options->align != OOLONG_ALIGN_WIDTH)
-    {
-        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-
-        for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-    }
-    else
+    if (options->align == OOLONG_ALIGN_WIDTH)
     {
         oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
             return OOLONG_ERROR_FAILED_IO_READ;
 
-        for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+        for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+            fputwc(L' ', file);
+    }
+    else
+    {
+        for (; printed_characters < options->element_width - options->element_padding; printed_characters++)
             fputwc(L' ', file);
     }
 
-    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
+    for (size_t index = 0; index < options->element_padding; index++)
+        fputwc(L' ', file);
 
-    if (ferror(file))
-        return OOLONG_ERROR_FAILED_IO_WRITE;
+    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
 
     return OOLONG_ERROR_NONE;
 }
@@ -141,15 +130,7 @@ static oolong_error_t print_label(oolong_stack_view_label_data_t* label, oolong_
         printed_characters += wcwidth(label->text[index]);
     }
 
-    if (options->align != OOLONG_ALIGN_WIDTH)
-    {
-        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-
-        for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-    }
-    else
+    if (options->align == OOLONG_ALIGN_WIDTH)
     {
         oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
@@ -159,11 +140,16 @@ static oolong_error_t print_label(oolong_stack_view_label_data_t* label, oolong_
         for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
             fputwc(L' ', file);
     }
+    else
+    {
+        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
+            fputwc(L' ', file);
+    }
+
+    for (size_t index = 0; index < options->element_padding; index++)
+        fputwc(L' ', file);
 
     fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
-
-    if (ferror(file))
-        return OOLONG_ERROR_FAILED_IO_WRITE;
 
     return OOLONG_ERROR_NONE;
 }
@@ -227,17 +213,16 @@ static oolong_error_t print_centered_aligned(oolong_stack_view_t* stack_view, fi
                 start_column = default_start;
         }
         
-        for (size_t i = 0; i < start_column; i++)
+        for (size_t index = 0; index < start_column; index++)
             fputwc(L' ', file);
 
         running_error |= print_element(stack_view->elements[element], stack_view->options, file);
         fputwc(L'\n', file);
 
-        for (size_t i = 0; i < stack_view->options->element_gap; i++)
+        for (size_t index = 0; index < stack_view->options->element_gap; index++)
             fputwc(L'\n', file);
     }
 
-    fflush(file);
     return running_error;
 }
 
@@ -257,7 +242,6 @@ static oolong_error_t print_left_aligned(oolong_stack_view_t* stack_view, file_t
             fputwc(L'\n', file);
     }
 
-    fflush(file);
     return running_error;
 }
 
@@ -316,7 +300,6 @@ static oolong_error_t print_right_aligned(oolong_stack_view_t* stack_view, file_
             fputwc(L'\n', file);
     }
 
-    fflush(file);
     return running_error;
 }
 
@@ -332,7 +315,6 @@ oolong_stack_view_t* oolong_stack_view_create(oolong_stack_view_options_t* optio
 
     stack_view->options = options;
     stack_view->elements = calloc(1, sizeof(oolong_stack_view_element_t*));
-    stack_view->elements[0] = NULL;
 
     return stack_view;
 }
@@ -537,23 +519,19 @@ oolong_error_t oolong_stack_view_active_text_box_register_key(oolong_stack_view_
     }
 
     if (text_box->entered_text == NULL)
-    {
         text_box->entered_text = calloc(1, sizeof(wchar_t));
-        text_box->entered_text[0] = L'\0';
-    }
 
     if (key == KEY_BACKSPACE)
     {
         if (text_box->entered_text[0] == L'\0')
             return OOLONG_ERROR_NONE;
 
-        size_t length = 0;
-        for (; text_box->entered_text[length] != L'\0'; length++);
+        size_t length = wcslen(text_box->entered_text);
         text_box->entered_text[length - 1] = L'\0';
         return OOLONG_ERROR_NONE;
     }
 
-    size_t length = 0;
+    size_t length = wcslen(text_box->entered_text);
     for (; text_box->entered_text[length] != L'\0'; length++);
 
     if (32 > key || 126 < key)
@@ -596,6 +574,11 @@ oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* 
         case (OOLONG_ALIGN_WIDTH):
             return oolong_error_record(print_left_aligned(stack_view, file));
     }
+
+    fflush(file);
+
+    if (ferror(file))
+        return OOLONG_ERROR_FAILED_IO_WRITE;
 
     return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 }

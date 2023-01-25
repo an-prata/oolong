@@ -27,11 +27,11 @@ static terminal_attributes_t original_terminal_state;
 
 static key_t interpret_escape_sequence(char* in, size_t in_size)
 {
-    if (in_size < 3)
-        goto error;
-    
-    if (in[0] != KEY_ESCAPE || in[1] != KEY_OPEN_BRACKET)
-        goto error;
+    if (in_size < 3 || in[0] != KEY_ESCAPE || in[1] != KEY_OPEN_BRACKET)
+    {
+        oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
+        return KEY_ERROR;
+    }
     
     switch (in[2])
     {
@@ -45,10 +45,6 @@ static key_t interpret_escape_sequence(char* in, size_t in_size)
 
     /* Unsupported escape. */
     return KEY_NULL;
-
-error:
-    oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
-    return KEY_ERROR;
 }
 
 /*
