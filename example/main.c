@@ -198,7 +198,7 @@ int main()
      * application frame that oolong prints.
      */
 
-    oolong_terminal_enter_alternate_screen();
+    oolong_terminal_enter_alternate_screen(stdout);
 
     /*
      * Disable canonical input, oolong's keyboard function only work on 
@@ -212,7 +212,7 @@ int main()
      * Hide the cursor, simple enough.
      */
 
-    oolong_terminal_hide_cursor();
+    oolong_terminal_hide_cursor(stdout);
 
     /*
      * Now that we've initialized our view, lets render it in a loop, in this
@@ -268,10 +268,10 @@ int main()
              * loop to clean up after ourselves.
              */
 
-            oolong_terminal_exit_alternate_screen();
+            oolong_terminal_exit_alternate_screen(stdout);
             oolong_restore_canonical_input();
-            oolong_terminal_show_cursor();
-            exit(0);
+            oolong_terminal_show_cursor(stdout);
+            exit(EXIT_SUCCESS);
         }
 
         /*

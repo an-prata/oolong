@@ -369,12 +369,16 @@ enum_t oolong_stack_view_get_selected_identifier(oolong_stack_view_t* stack_view
     return -1;
 }
 
-void oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view)
+oolong_error_t oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view)
 {
     if (stack_view == NULL)
-        return;
+        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 
-    for (size_t index = 0; stack_view->elements[index] != NULL; index++)
+    size_t index = 0;
+
+    /* Find current selection. */
+
+    for (; stack_view->elements[index] != NULL; index++)
     {
         if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
         {
@@ -382,7 +386,7 @@ void oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view)
                 continue;
         
             stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
-            goto select_next;
+            break;
         }
 
         if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
@@ -391,44 +395,49 @@ void oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view)
                 continue;
         
             stack_view->elements[index]->data.text_box.state = OOLONG_ELEMENT_STATE_NORMAL;
-            goto select_next;
-        }
-
-        continue;
-
-    select_next:
-        for (size_t next_selected = index + 1; next_selected != index; next_selected++)
-        {
-            if (stack_view->elements[next_selected] == NULL)
-                next_selected = 0;
-        
-            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-            {
-                if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
-                    continue;
-
-                stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
-                return;
-            }
-
-            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-            {
-                if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
-                    continue;
-
-                stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
-                return;
-            }
+            break;
         }
     }
+
+    /* Select the next element. */
+
+    for (size_t next_selected = index + 1; next_selected != index; next_selected++)
+    {
+        if (stack_view->elements[next_selected] == NULL)
+            next_selected = 0;
+    
+        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+        {
+            if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
+                continue;
+
+            stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
+            return OOLONG_ERROR_NONE;
+        }
+
+        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+        {
+            if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
+                continue;
+
+            stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
+            return OOLONG_ERROR_NONE;
+        }
+    }
+
+    return OOLONG_ERROR_NONE;
 }
 
-void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view)
+oolong_error_t oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view)
 {
     if (stack_view == NULL)
-        return;
+        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 
-    for (size_t index = 0; stack_view->elements[index] != NULL; index++)
+    size_t index = 0;
+
+    /* Find current selection. */
+
+    for (; stack_view->elements[index] != NULL; index++)
     {
         if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
         {
@@ -436,7 +445,7 @@ void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view)
                 continue;
         
             stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
-            goto select_previous;
+            break;
         }
 
         if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
@@ -445,42 +454,44 @@ void oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view)
                 continue;
         
             stack_view->elements[index]->data.text_box.state = OOLONG_ELEMENT_STATE_NORMAL;
-            goto select_previous;
-        }
-
-        continue;
-
-    select_previous:
-        for (size_t next_selected = index - 1; next_selected != index; next_selected--)
-        {
-            /*
-             * Lucky for me unsigned underflow is very well defined behavior,
-             * so (size_t)(0 - 1) is always SIZE_MAX, and frankly giving up the
-             * one element to make this possible is fine with me, since any UI
-             * with that many buttons is shit anyways.
-             */
-            if (next_selected == SIZE_MAX)
-                for (; stack_view->elements[next_selected + 1] != NULL; next_selected++);
-
-            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-            {
-                if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
-                    continue;
-
-                stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
-                return;
-            }
-
-            if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-            {
-                if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
-                    continue;
-
-                stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
-                return;
-            }
+            break;
         }
     }
+
+    /* Select previous element. */
+    
+    for (size_t next_selected = index - 1; next_selected != index; next_selected--)
+    {
+        /*
+         * Lucky for me unsigned underflow is very well defined behavior,
+         * so (size_t)(0 - 1) is always SIZE_MAX, and frankly giving up the
+         * one element to make this possible is fine with me, since any UI
+         * with that many buttons is shit anyways.
+         */
+
+        if (next_selected == SIZE_MAX)
+            for (; stack_view->elements[next_selected + 1] != NULL; next_selected++);
+
+        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
+        {
+            if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
+                continue;
+
+            stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
+            return OOLONG_ERROR_NONE;
+        }
+
+        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
+        {
+            if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
+                continue;
+
+            stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
+            return OOLONG_ERROR_NONE;
+        }
+    }
+
+    return OOLONG_ERROR_NONE;
 }
 
 bool oolong_stack_view_get_is_text_box_active(oolong_stack_view_t* stack_view)
@@ -550,8 +561,8 @@ oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* 
     if (stack_view == NULL || file == NULL)
         return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 
-    oolong_terminal_clear();
-    oolong_terminal_set_cursor_position(0, 0);
+    oolong_terminal_clear(file);
+    oolong_terminal_set_cursor_position(0, 0, file);
 
     for (size_t i = 0; i < stack_view->options->view_top_margin; i++)
         fputwc(L'\n', file);

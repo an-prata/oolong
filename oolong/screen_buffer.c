@@ -29,7 +29,7 @@ oolong_screen_buffer_dimensions_t oolong_get_screen_dimensions(void)
         return dimensions;
     }
 
-    oolong_screen_buffer_dimensions_t dimensions = { .columns = window_size.ws_col, .rows = window_size.ws_xpixel };
+    oolong_screen_buffer_dimensions_t dimensions = { .columns = window_size.ws_col, .rows = window_size.ws_row};
     return dimensions;
 }
 
@@ -113,7 +113,7 @@ oolong_error_t oolong_screen_buffer_print(oolong_screen_buffer_t* screen_buffer)
     if (screen_buffer == NULL)
         return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 
-    oolong_terminal_clear();
+    oolong_terminal_clear(stdout);
     
     for (size_t i = 0; i < screen_buffer->rows * screen_buffer->columns; i += wcwidth(screen_buffer->contents[i]))
         printf("%lc", screen_buffer->contents[i]);
