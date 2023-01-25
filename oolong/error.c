@@ -22,7 +22,7 @@ oolong_error_t oolong_error_debug_record(oolong_error_t error, const char* file,
     if (exit_on_error)
     {
         fprintf(stderr, "%s: line %zu of %s in %s\n", __func__, line, function, file);
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     recorded_errors |= error;
