@@ -11,6 +11,8 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
     steps:
+    - name: ls
+      run: ls
     - name: Run build.sh
       run: bash build.sh
     - name: Run test.sh
