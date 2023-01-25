@@ -12,5 +12,6 @@
 #include "keyboard.h"
 #include "screen_buffer.h"
 #include "stack_view.h"
+#include "dialog_view.h"
 #include "styling.h"
 
