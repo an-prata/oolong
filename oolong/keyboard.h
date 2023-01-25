@@ -145,4 +145,10 @@ oolong_key_t oolong_keyboard_get_key(void);
  */
 wchar_t* oolong_keyboard_get_string(void);
 
+/*
+ * Buffer keys to be returned by oolong_keyboard_get_key(). This is mostly for
+ * making the input unit testable.
+ */
+oolong_error_t oolong_keyboard_buffer_keys(oolong_key_t* keys, size_t keys_length);
+
 #endif // KEYBOARD_H

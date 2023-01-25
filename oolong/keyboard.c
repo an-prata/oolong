@@ -20,6 +20,9 @@
 
 typedef struct termios terminal_attributes_t;
 
+static size_t buffered_keys_index = 0;
+static size_t buffered_keys_length = 0;
+static oolong_key_t* buffered_keys = NULL;
 static terminal_attributes_t original_terminal_state;
 
 static key_t interpret_escape_sequence(char* in, size_t in_size)
@@ -87,6 +90,12 @@ oolong_error_t oolong_restore_canonical_input(void)
 
 oolong_key_t oolong_keyboard_get_key(void)
 {
+    if (buffered_keys_index < buffered_keys_length)
+    {
+        buffered_keys_index++;
+        return buffered_keys[buffered_keys_index - 1];
+    }
+    
     char in[READ_SIZE];
     ssize_t in_size = read(STDIN_FILENO, in, READ_SIZE);
 
@@ -112,5 +121,15 @@ oolong_key_t oolong_keyboard_get_key(void)
      */
     
     return KEY_STRING;
+}
+
+oolong_error_t oolong_keyboard_buffer_keys(oolong_key_t* keys, size_t keys_length)
+{
+    if (keys == NULL || keys_length < 1)
+        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+
+    buffered_keys_length = keys_length;
+    buffered_keys = keys;
+    return OOLONG_ERROR_NONE;
 }
 

@@ -7,6 +7,7 @@
 #include "include/scrutiny.h"
 #include "error_tests.h"
 #include "style_set_tests.h"
+#include "keyboard_tests.h"
 
 int main()
 {
@@ -14,6 +15,7 @@ int main()
     {
         error_test,
         style_set_add_test,
+        buffered_keys_test,
         NULL
     };
 
