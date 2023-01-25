@@ -553,20 +553,21 @@ oolong_error_t oolong_stack_view_active_text_box_register_key(oolong_stack_view_
         return OOLONG_ERROR_NONE;
     }
 
-    if (32 > key || 126 < key)
-        return OOLONG_ERROR_NONE;
-    
     size_t length = 0;
     for (; text_box->entered_text[length] != L'\0'; length++);
 
+    if (32 > key || 126 < key)
+        return OOLONG_ERROR_NONE;
+    
     wchar_t* new_text = reallocarray(text_box->entered_text, length + 2, sizeof(wchar_t));
+    length++;
 
     if (new_text == NULL)
         return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
 
     text_box->entered_text = new_text;
-    text_box->entered_text[length] = key;
-    text_box->entered_text[length + 1] = L'\0';
+    text_box->entered_text[length - 1] = key;
+    text_box->entered_text[length] = L'\0';
     return OOLONG_ERROR_NONE;
 }
 
