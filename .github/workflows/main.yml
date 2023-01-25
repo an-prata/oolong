@@ -11,6 +11,7 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: ls
       run: ls
     - name: Run build.sh
