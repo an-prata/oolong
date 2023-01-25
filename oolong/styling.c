@@ -40,12 +40,18 @@ oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style
 {
     if (style_set == NULL)
         return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+
+    if (style == OOLONG_STYLE_CLEAR)
+    {
+        oolong_style_set_destroy(*style_set);
+        *style_set = oolong_style_set_create();
+        return OOLONG_ERROR_NONE;
+    }
     
-    size_t length = 0;
-    for (; (*style_set)[length] != L'\0'; length++);
+    size_t set_length = wcslen(*style_set);
     size_t style_length = wcslen(style_escapes[style]) + 1;
     
-    oolong_style_set_t* new_set = reallocarray(*style_set, length + style_length, sizeof(oolong_style_t));
+    oolong_style_set_t* new_set = reallocarray(*style_set, set_length + style_length, sizeof(oolong_style_t));
 
     if (new_set == NULL)
         return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
@@ -53,10 +59,8 @@ oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style
     *style_set = new_set;
 
     for (size_t i = 0; i < style_length; i++)
-        (*style_set)[i + length] = style_escapes[style][i];
+        (*style_set)[i + set_length] = style_escapes[style][i];
     
-    /* Probably not needed, but gives peace of mind. :D */
-    // (*style_set)[length + style_length - 1] = L'\0';
     return OOLONG_ERROR_NONE;
 }
 
