@@ -12,10 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Run build.sh
-      run: ./build.sh
-      shell: bash
+      run: bash build.sh
     - name: Run test.sh
-      run: ./test.sh
-      shell: bash
+      run: bash test.sh
     
       
