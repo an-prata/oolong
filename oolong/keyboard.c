@@ -105,6 +105,10 @@ oolong_key_t oolong_keyboard_get_key(void)
     /*
      * Getting here means that more that 1 byte was read and the first byte was
      * not an escape key - likely a copy and paste or multibyte character.
+     *
+     * In this case we can only relinquish handling input to whatever needs it
+     * since we cant know where one input begins and the next ends, putting us
+     * in an infinite loop.
      */
     
     return KEY_STRING;
