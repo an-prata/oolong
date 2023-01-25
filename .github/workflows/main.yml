@@ -1,0 +1,21 @@
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+  
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run build.sh
+      run: ./build.sh
+      shell: bash
+    - name: Run test.sh
+      run: ./test.sh
+      shell: bash
+    
+      
