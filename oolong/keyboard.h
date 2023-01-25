@@ -118,6 +118,7 @@ enum oolong_key_e
     KEY_LEFT          = -4,
     KEY_HOME          = -5,
     KEY_END           = -6,
+    KEY_STRING        = -7,   /* More than one key was recieved, probably from the clipboard. */
 };
 
 typedef enum oolong_key_e oolong_key_t;
@@ -137,5 +138,11 @@ oolong_error_t oolong_restore_canonical_input(void);
  * Gets a single keypress, canonical input should be disabled.
  */
 oolong_key_t oolong_keyboard_get_key(void);
+
+/*
+ * Gets a NULL terminated string of all wide characters read from the standard
+ * input stream. Returns NULL if oolong_keyboard_get_key() has not been called.
+ */
+wchar_t* oolong_keyboard_get_string(void);
 
 #endif // KEYBOARD_H
