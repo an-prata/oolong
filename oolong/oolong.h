@@ -13,5 +13,6 @@
 #include "screen_buffer.h"
 #include "stack_view.h"
 #include "dialog_view.h"
+#include "page.h"
 #include "styling.h"
 
