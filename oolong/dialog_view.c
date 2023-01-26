@@ -238,5 +238,15 @@ oolong_error_t oolong_dialog_view_select_previous(oolong_dialog_view_t* dialog)
 	return OOLONG_ERROR_NONE;
 }
 
-enum_t oolong_dialog_get_selected_identifier(oolong_dialog_view_t* dialog);
+enum_t oolong_dialog_get_selected_identifier(oolong_dialog_view_t* dialog)
+{
+    if (dialog == NULL)
+        return -1;
+
+    for (size_t index = 0; dialog->buttons[index] != NULL; index++)
+    	if (dialog->buttons[index]->state == OOLONG_DIALOG_BUTTON_STATE_SELECTED)
+			return dialog->buttons[index]->identifier;
+
+    return -1;
+}
 
