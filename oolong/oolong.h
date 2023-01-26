@@ -5,7 +5,7 @@
 
 #define OOLONG_VERSION_MAJOR 1
 #define OOLONG_VERSION_MINOR 2
-#define OOLONG_VERSION_PATCH 0
+#define OOLONG_VERSION_PATCH 1
 
 #include "error.h"
 #include "escapes.h"
