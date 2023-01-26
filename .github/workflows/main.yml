@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: ls
-      run: ls
     - name: Run build.sh
       run: bash build.sh
     - name: Run test.sh
