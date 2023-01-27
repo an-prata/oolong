@@ -135,15 +135,12 @@ oolong_error_t oolong_disable_canonical_input(void);
 oolong_error_t oolong_restore_canonical_input(void);
 
 /*
- * Gets a single keypress, canonical input should be disabled.
+ * Gets a single keypress, canonical input should be disabled. Returns
+ * KEY_ERROR on error and KEY_STRING when more that one byte was provided that
+ * was not avalid escape sequence, this probably means either a wide character
+ * was entered or text was pasted.
  */
 oolong_key_t oolong_keyboard_get_key(void);
-
-/*
- * Gets a NULL terminated string of all wide characters read from the standard
- * input stream. Returns NULL if oolong_keyboard_get_key() has not been called.
- */
-wchar_t* oolong_keyboard_get_string(void);
 
 /*
  * Buffer keys to be returned by oolong_keyboard_get_key(). This is mostly for
