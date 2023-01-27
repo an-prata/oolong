@@ -78,10 +78,9 @@ oolong_error_t oolong_restore_canonical_input(void)
     oolong_error_t error = OOLONG_ERROR_NONE;
     
     if (tcsetattr(STDIN_FILENO, TCSANOW, &original_terminal_state))
-        error = OOLONG_ERROR_FAILED_IO_WRITE;
+        return oolong_error_record(error);
 
-    oolong_error_record(error);
-    return error;
+    return OOLONG_ERROR_NONE;
 }
 
 oolong_key_t oolong_keyboard_get_key(void)

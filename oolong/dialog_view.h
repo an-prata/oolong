@@ -65,10 +65,19 @@ oolong_error_t oolong_dialog_view_set_text(oolong_dialog_view_t* dialog, wchar_t
  */
 oolong_error_t oolong_dialog_view_print(oolong_dialog_view_t* dialog, file_t* file);
 
+/*
+ * Select the next button to the current selection.
+ */
 oolong_error_t oolong_dialog_view_select_next(oolong_dialog_view_t* dialog);
 
+/*
+ * Select the previous button to the current selection.
+ */
 oolong_error_t oolong_dialog_view_select_previous(oolong_dialog_view_t* dialog);
 
+/*
+ * Gets the identifier of the selected button, return -1 on error or not found.
+ */
 enum_t oolong_dialog_get_selected_identifier(oolong_dialog_view_t* dialog);
 
 #endif // DIALOG_VIEW_H
