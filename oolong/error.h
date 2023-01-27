@@ -35,6 +35,19 @@ void oolong_error_set_exit_on_error(bool exit_on_error);
 /*
  * Records the given error, recording the same type of error twice, without
  * clearing errors inbetween, does nothing. Returns the recorded error.
+ *
+ * This function should, in most cases, be called the moment an error is found
+ * rather than have the error returned up a level and recorder there. This
+ * means that if a function ever returns an error, it should have also recorded
+ * it and the function receiving this error should not record it again, it may
+ * however return the error itself.
+ *
+ * It should also never be assumed that the program shall exit on an error,
+ * this means all functions should be expected to prevent things such as heap
+ * corruption or overuns in the event of an error. If ever a function records
+ * an error without also returning it, the return value should be indicative of
+ * an error or prevent further errors in its use (e.g. return 0 for unsigned
+ * types, -1 for signed, NULL for pointers, etc.).
  */
 oolong_error_t oolong_error_debug_record(oolong_error_t error, const char* file, const char* function, size_t line);
 
