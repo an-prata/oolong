@@ -3,6 +3,9 @@
  * See LICENSE file in repository root for complete license text.
  */
 
+#ifndef OOLONG_H
+#define OOLONG_H
+
 #define OOLONG_VERSION_MAJOR 1
 #define OOLONG_VERSION_MINOR 2
 #define OOLONG_VERSION_PATCH 1
@@ -15,4 +18,6 @@
 #include "dialog_view.h"
 #include "page.h"
 #include "styling.h"
+
+#endif // OOLONG_H
 
