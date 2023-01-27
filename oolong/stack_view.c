@@ -54,7 +54,7 @@ static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box
         oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-            return OOLONG_ERROR_FAILED_IO_READ;
+            return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
 
         for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
             fputwc(L' ', file);
@@ -96,7 +96,7 @@ static oolong_error_t print_button(oolong_stack_view_button_data_t* button, oolo
         oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-            return OOLONG_ERROR_FAILED_IO_READ;
+            return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
 
         for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
             fputwc(L' ', file);
@@ -135,7 +135,7 @@ static oolong_error_t print_label(oolong_stack_view_label_data_t* label, oolong_
         oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-            return OOLONG_ERROR_FAILED_IO_READ;
+            return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
 
         for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
             fputwc(L' ', file);
@@ -172,10 +172,8 @@ static oolong_error_t print_centered_aligned(oolong_stack_view_t* stack_view, fi
     oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
     if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-        return OOLONG_ERROR_FAILED_IO_READ;
+        return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
 
-    oolong_error_t running_error = OOLONG_ERROR_NONE;
-    
     for (size_t element = 0; stack_view->elements[element] != NULL; element++)
     {
         size_t start_column = 0;
@@ -216,33 +214,39 @@ static oolong_error_t print_centered_aligned(oolong_stack_view_t* stack_view, fi
         for (size_t index = 0; index < start_column; index++)
             fputwc(L' ', file);
 
-        running_error |= print_element(stack_view->elements[element], stack_view->options, file);
+        oolong_error_t error = print_element(stack_view->elements[element], stack_view->options, file);
+
+        if (error != OOLONG_ERROR_NONE)
+            return error;
+        
         fputwc(L'\n', file);
 
         for (size_t index = 0; index < stack_view->options->element_gap; index++)
             fputwc(L'\n', file);
     }
 
-    return running_error;
+    return OOLONG_ERROR_NONE;
 }
 
 static oolong_error_t print_left_aligned(oolong_stack_view_t* stack_view, file_t* file)
 {
-    oolong_error_t running_error = OOLONG_ERROR_NONE;
-    
     for (size_t element = 0; stack_view->elements[element] != NULL; element++)
     {
         for (size_t i = 0; i < stack_view->options->view_side_margin; i++)
             fputwc(L' ', file);
 
-        running_error |= print_element(stack_view->elements[element], stack_view->options, file);
+        oolong_error_t error = print_element(stack_view->elements[element], stack_view->options, file);
+
+        if (error == OOLONG_ERROR_NONE)
+            return error;
+        
         fputwc(L'\n', file);
 
         for (size_t i = 0; i < stack_view->options->element_gap; i++)
             fputwc(L'\n', file);
     }
 
-    return running_error;
+    return OOLONG_ERROR_NONE;
 }
 
 static oolong_error_t print_right_aligned(oolong_stack_view_t* stack_view, file_t* file)
@@ -252,8 +256,6 @@ static oolong_error_t print_right_aligned(oolong_stack_view_t* stack_view, file_
     if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
         return OOLONG_ERROR_FAILED_IO_READ;
 
-    oolong_error_t running_error = OOLONG_ERROR_NONE;
-    
     for (size_t element = 0; stack_view->elements[element] != NULL; element++)
     {
         size_t start_column = 0;
@@ -293,14 +295,18 @@ static oolong_error_t print_right_aligned(oolong_stack_view_t* stack_view, file_
         for (size_t i = 0; i < start_column; i++)
             fputwc(L' ', file);
 
-        running_error |= print_element(stack_view->elements[element], stack_view->options, file);
+        oolong_error_t error = print_element(stack_view->elements[element], stack_view->options, file);
+
+        if (error != OOLONG_ERROR_NONE)
+            return error;
+        
         fputwc(L'\n', file);
 
         for (size_t i = 0; i < stack_view->options->element_gap; i++)
             fputwc(L'\n', file);
     }
 
-    return running_error;
+    return OOLONG_ERROR_NONE;
 }
 
 oolong_stack_view_t* oolong_stack_view_create(oolong_stack_view_options_t* options)
@@ -492,6 +498,12 @@ oolong_error_t oolong_stack_view_select_previous_element(oolong_stack_view_t* st
 
 bool oolong_stack_view_get_is_text_box_active(oolong_stack_view_t* stack_view)
 {
+    if (stack_view == NULL)
+    {
+        oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+        return false;
+    }
+
     for (size_t element = 0; stack_view->elements[element] != NULL; element++)
         if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
             if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
@@ -563,22 +575,22 @@ oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* 
     switch (stack_view->options->align)
     {
         case (OOLONG_ALIGN_CENTER):
-            return oolong_error_record(print_centered_aligned(stack_view, file));
+            return print_centered_aligned(stack_view, file);
 
         case (OOLONG_ALIGN_LEFT):
-            return oolong_error_record(print_left_aligned(stack_view, file));
+            return print_left_aligned(stack_view, file);
 
         case (OOLONG_ALIGN_RIGHT):
-            return oolong_error_record(print_right_aligned(stack_view, file));
+            return print_right_aligned(stack_view, file);
 
         case (OOLONG_ALIGN_WIDTH):
-            return oolong_error_record(print_left_aligned(stack_view, file));
+            return print_left_aligned(stack_view, file);
     }
 
     fflush(file);
 
     if (ferror(file))
-        return OOLONG_ERROR_FAILED_IO_WRITE;
+        return oolong_error_record(OOLONG_ERROR_FAILED_IO_WRITE);
 
     return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 }
