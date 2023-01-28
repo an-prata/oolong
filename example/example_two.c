@@ -153,7 +153,7 @@ int main()
 		}
 
 		/*
-		 * Since the stack view and dialog views displayin opposite directions it
+		 * Since the stack view and dialog views display in opposite directions it
 		 * makes sense to change the orientation of the controls from up/down to 
 		 * left/right.
 		 */
