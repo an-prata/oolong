@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef ESCAPES_H
-#define ESCAPES_H
+#ifndef OOLONG_ESCAPES_H
+#define OOLONG_ESCAPES_H
 
 #include "error.h"
 
@@ -15,5 +15,5 @@
 #define oolong_terminal_set_cursor_position(column, row, file) fwprintf(file, L"\033[%zu;%zuH", row, column)
 #define oolong_terminal_clear(file) fwprintf(file, L"\033[2J")
 
-#endif // ESCAPES_H
+#endif // OOLONG_ESCAPES_H
 

@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef OOLONG_KEYBOARD_H
+#define OOLONG_KEYBOARD_H
 
 #include <limits.h>
 #include "error.h"
@@ -148,4 +148,5 @@ oolong_key_t oolong_keyboard_get_key(void);
  */
 oolong_error_t oolong_keyboard_buffer_keys(oolong_key_t* keys, size_t keys_length);
 
-#endif // KEYBOARD_H
+#endif // OOLONG_KEYBOARD_H
+

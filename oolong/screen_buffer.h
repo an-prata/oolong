@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef SCREEN_BUFFER_H
-#define SCREEN_BUFFER_H
+#ifndef OOLONG_SCREEN_BUFFER_H
+#define OOLONG_SCREEN_BUFFER_H
 
 /* This constant is required for the full set of wide character functions. */
 #define __USE_XOPEN
@@ -61,5 +61,5 @@ wchar_t* oolong_screen_buffer_get_contents(oolong_screen_buffer_t* screen_buffer
  */
 oolong_error_t oolong_screen_buffer_print(oolong_screen_buffer_t* screen_buffer);
 
-#endif // SCREEN_BUFFER_H
+#endif // OOLONG_SCREEN_BUFFER_H
 

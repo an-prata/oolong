@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef DIALOG_VIEW_H
-#define DIALOG_VIEW_H
+#ifndef OOLONG_DIALOG_VIEW_H
+#define OOLONG_DIALOG_VIEW_H
 
 #include "styling.h"
 
@@ -80,5 +80,5 @@ oolong_error_t oolong_dialog_view_select_previous(oolong_dialog_view_t* dialog);
  */
 enum_t oolong_dialog_get_selected_identifier(oolong_dialog_view_t* dialog);
 
-#endif // DIALOG_VIEW_H
+#endif // OOLONG_DIALOG_VIEW_H
 

@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef PAGE_H
-#define PAGE_H
+#ifndef OOLONG_PAGE_H
+#define OOLONG_PAGE_H
 
 /*
  * The purpose of oolong's page structure is to provide a common interface by
@@ -63,5 +63,5 @@ oolong_error_t oolong_page_select_previous_element(oolong_page_t* page);
  */
 enum_t oolong_page_get_selected_identifier(oolong_page_t* page);
 
-#endif // PAGE_H
+#endif // OOONG_PAGE_H
 

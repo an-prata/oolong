@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef STACK_VIEW_H
-#define STACK_VIEW_H
+#ifndef OOLONG_STACK_VIEW_H
+#define OOLONG_STACK_VIEW_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -169,5 +169,5 @@ oolong_error_t oolong_stack_view_active_text_box_register_key(oolong_stack_view_
  */
 oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* file);
 
-#endif // STACK_VIEW_H
+#endif // OOLONG_STACK_VIEW_H
 

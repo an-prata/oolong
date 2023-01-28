@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef STYLING_H
-#define STYLING_H
+#ifndef OOLONG_STYLING_H
+#define OOLONG_STYLING_H
 
 #include <wchar.h>
 #include "error.h"
@@ -54,5 +54,5 @@ oolong_error_t oolong_style_set_add(oolong_style_set_t** style_set, oolong_style
  */
 oolong_error_t oolong_style_set_destroy(oolong_style_set_t* style_set);
 
-#endif // STYLING_H
+#endif // OOLONG_STYLING_H
 
