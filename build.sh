@@ -15,7 +15,7 @@ done
 mkdir build -p
 
 for FILE in $SOURCE_FILES; do
-    gcc -c $FILE -o "build/$(basename $FILE).o"
+    gcc -Wall -Wextra -c $FILE -o "build/$(basename $FILE).o"
 
     if [ "$?" != "0" ]; then
         exit 1
