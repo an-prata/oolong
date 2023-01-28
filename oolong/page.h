@@ -60,6 +60,7 @@ oolong_error_t oolong_page_select_previous_element(oolong_page_t* page);
 
 /*
  * Get the given page's member view's currently selected element's identifier.
+ * Returns -1 on error.
  */
 enum_t oolong_page_get_selected_identifier(oolong_page_t* page);
 

@@ -8,7 +8,6 @@
 
 #include <wchar.h>
 #include "error.h"
-#include "escapes.h"
 
 #define OOLONG_STYLE_CLEAR_STRING L"\033[0m"
 

@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef OOLONG_SCREEN_BUFFER_H
-#define OOLONG_SCREEN_BUFFER_H
+#ifndef OOLONG_SCREEN_H
+#define OOLONG_SCREEN_H
 
 /* This constant is required for the full set of wide character functions. */
 #define __USE_XOPEN
@@ -15,9 +15,9 @@
 /* For convinience, any locale can be used but this is whats tested. */
 #define oolong_set_locale() setlocale(LC_CTYPE, "C.UTF-8")
 
-typedef struct oolong_screen_buffer_dimensions_s oolong_screen_buffer_dimensions_t;
+typedef struct oolong_screen_dimensions_s oolong_screen_dimensions_t;
 
-struct oolong_screen_buffer_dimensions_s
+struct oolong_screen_dimensions_s
 {
     size_t columns;
     size_t rows;
@@ -26,7 +26,7 @@ struct oolong_screen_buffer_dimensions_s
 /*
  * The the dimensions of the current terminal screen.
  */
-oolong_screen_buffer_dimensions_t oolong_get_screen_dimensions(void);
+oolong_screen_dimensions_t oolong_get_screen_dimensions(void);
 
-#endif // OOLONG_SCREEN_BUFFER_H
+#endif // OOLONG_SCREEN_H
 

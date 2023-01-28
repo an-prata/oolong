@@ -13,7 +13,7 @@
 #include "error.h"
 #include "escapes.h"
 #include "keyboard.h"
-#include "screen_buffer.h"
+#include "screen.h"
 #include "stack_view.h"
 #include "dialog_view.h"
 #include "page.h"

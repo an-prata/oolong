@@ -4,7 +4,9 @@
  */
 
 #include <stdio.h>
-#include "screen_buffer.h"
+#include <stdint.h>
+#include "escapes.h"
+#include "screen.h"
 #include "dialog_view.h"
 
 struct oolong_dialog_view_s
@@ -76,7 +78,7 @@ oolong_error_t oolong_dialog_view_print(oolong_dialog_view_t* dialog, file_t* fi
 	oolong_terminal_clear(file);
 	oolong_terminal_set_cursor_position(0, 0, file);
 
-	oolong_screen_buffer_dimensions_t dimensions = oolong_get_screen_dimensions();
+	oolong_screen_dimensions_t dimensions = oolong_get_screen_dimensions();
 
 	if (dimensions.columns == 0 && dimensions.rows == 0)
 		return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);

@@ -4,7 +4,9 @@
  */
 
 #include <stdlib.h>
-#include "screen_buffer.h"
+#include <stdint.h>
+#include "screen.h"
+#include "escapes.h"
 #include "stack_view.h"
 
 struct oolong_stack_view_s
@@ -51,7 +53,7 @@ static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box
 
     if (options->align == OOLONG_ALIGN_WIDTH)
     {
-        oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+        oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
             return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
@@ -93,7 +95,7 @@ static oolong_error_t print_button(oolong_stack_view_button_data_t* button, oolo
 
     if (options->align == OOLONG_ALIGN_WIDTH)
     {
-        oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+        oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
             return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
@@ -132,17 +134,17 @@ static oolong_error_t print_label(oolong_stack_view_label_data_t* label, oolong_
 
     if (options->align == OOLONG_ALIGN_WIDTH)
     {
-        oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+        oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
         if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
             return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
 
-        for (size_t start_index = printed_characters; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
+        for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
             fputwc(L' ', file);
     }
     else
     {
-        for (size_t start_index = printed_characters; printed_characters < options->element_width - options->element_padding; printed_characters++)
+        for (; printed_characters < options->element_width - options->element_padding; printed_characters++)
             fputwc(L' ', file);
     }
 
@@ -164,12 +166,14 @@ static oolong_error_t print_element(oolong_stack_view_element_t* element, oolong
             return print_label(&element->data.label, options, file);
         case (OOLONG_ELEMENT_TYPE_TEXT_BOX):
             return print_text_box(&element->data.text_box, options, file);
+        default:
+            return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
     }
 }
 
 static oolong_error_t print_centered_aligned(oolong_stack_view_t* stack_view, file_t* file)
 {
-    oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+    oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
     if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
         return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
@@ -251,7 +255,7 @@ static oolong_error_t print_left_aligned(oolong_stack_view_t* stack_view, file_t
 
 static oolong_error_t print_right_aligned(oolong_stack_view_t* stack_view, file_t* file)
 {
-    oolong_screen_buffer_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+    oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
 
     if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
         return OOLONG_ERROR_FAILED_IO_READ;
