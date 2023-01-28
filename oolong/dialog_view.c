@@ -11,7 +11,7 @@ struct oolong_dialog_view_s
 {
 	oolong_dialog_view_options_t* options;
 	oolong_dialog_view_button_t** buttons;
-	wchar_t* text;
+	const wchar_t* text;
 };
 
 oolong_dialog_view_t* oolong_dialog_view_create(oolong_dialog_view_options_t* options)
@@ -59,7 +59,7 @@ oolong_error_t oolong_dialog_view_add_button(oolong_dialog_view_t* dialog, oolon
     return OOLONG_ERROR_NONE;
 }
 
-oolong_error_t oolong_dialog_view_set_text(oolong_dialog_view_t* dialog, wchar_t* text)
+oolong_error_t oolong_dialog_view_set_text(oolong_dialog_view_t* dialog, const wchar_t* text)
 {
 	if (dialog == NULL || text == NULL)
 		return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);

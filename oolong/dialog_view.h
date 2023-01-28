@@ -58,7 +58,7 @@ oolong_error_t oolong_dialog_view_add_button(oolong_dialog_view_t* dialog, oolon
 /*
  * Set the dialog text.
  */
-oolong_error_t oolong_dialog_view_set_text(oolong_dialog_view_t* dialog, wchar_t* text);
+oolong_error_t oolong_dialog_view_set_text(oolong_dialog_view_t* dialog, const wchar_t* text);
 
 /*
  * Print the given dialog to the given file.
