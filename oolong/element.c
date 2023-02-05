@@ -25,16 +25,13 @@ ssize_t oolong_element_get_selected_index(oolong_element_t** elements)
 
 	while (elements[selected_index] != NULL)
 	{
-		if (elements[selected_index] == NULL)
-			return -1;
-
 		if (elements[selected_index]->state == OOLONG_ELEMENT_STATE_SELECTED)
-			break;
+			return selected_index;
 
 		selected_index++;
 	}
 
-	return selected_index;
+	return -1;
 }
 
 oolong_error_t oolong_element_render_string(oolong_element_t* element)
@@ -50,12 +47,14 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 		case (OOLONG_ELEMENT_STATE_DISABLED):	current_style = element->style_disabled;	break;
 	}
 
-	element_string_length += wcslen(current_style);
 	element_string_length += element->padding * 2;
 	element_string_length += wcslen(element->content);
 	element_string_length = element_string_length < element->width ? element->width : element_string_length;
 
-	if (element_string_length > wcslen(element->string))
+	element_string_length += wcslen(current_style);
+	element_string_length += wcslen(OOLONG_STYLE_CLEAR_STRING);
+	
+	if (element->string == NULL || element_string_length > wcslen(element->string))
 	{
 		wchar_t* new_string = calloc(element_string_length + 1, sizeof(wchar_t));
 
@@ -78,10 +77,14 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 	wcscpy(&element->string[current_index], element->content);
 	current_index += wcslen(element->content);
 
-	wmemset(&element->string[current_index], L' ', (element_string_length - 1) - current_index);
+	wmemset(&element->string[current_index], L' ', element_string_length - wcslen(OOLONG_STYLE_CLEAR_STRING) - current_index);
+	current_index += element_string_length - wcslen(OOLONG_STYLE_CLEAR_STRING) - current_index;
+
+	wcscpy(&element->string[current_index], OOLONG_STYLE_CLEAR_STRING);
 	return OOLONG_ERROR_NONE;
 }
 
+#include <stdio.h>
 oolong_error_t oolong_element_select_next(oolong_element_t** elements)
 {
 	if (elements == NULL)
@@ -96,6 +99,9 @@ oolong_error_t oolong_element_select_next(oolong_element_t** elements)
 
 	while (selected_index_next != selected_index)
 	{
+		if (elements[selected_index_next] == NULL)
+			selected_index_next = 0;
+
 		if (elements[selected_index_next]->supported_states & OOLONG_ELEMENT_STATE_SELECTED)
 		{
 			elements[selected_index]->state = OOLONG_ELEMENT_STATE_NORMAL;
@@ -104,9 +110,6 @@ oolong_error_t oolong_element_select_next(oolong_element_t** elements)
 		}
 		
 		selected_index_next++;
-		
-		if (elements[selected_index_next] == NULL)
-			selected_index_next = 0;
 	}
 
 	return OOLONG_ERROR_NONE;
@@ -122,10 +125,13 @@ oolong_error_t oolong_element_select_previous(oolong_element_t** elements)
 	if (selected_index == -1)
 		return OOLONG_ERROR_NONE;
 
-	ssize_t selected_index_previous = selected_index + 1;
+	ssize_t selected_index_previous = selected_index - 1;
 
 	while (selected_index_previous != selected_index)
 	{
+		if (selected_index_previous < 0)
+			for (; elements[selected_index_previous + 1] != NULL; selected_index_previous++);
+
 		if (elements[selected_index_previous]->supported_states & OOLONG_ELEMENT_STATE_SELECTED)
 		{
 			elements[selected_index]->state = OOLONG_ELEMENT_STATE_NORMAL;
@@ -133,9 +139,6 @@ oolong_error_t oolong_element_select_previous(oolong_element_t** elements)
 			return OOLONG_ERROR_NONE;
 		}
 		
-		if (selected_index_previous == 0)
-			for (; elements[selected_index_previous] != NULL; selected_index_previous++);
-
 		selected_index_previous--;
 	}
 
