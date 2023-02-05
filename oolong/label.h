@@ -9,6 +9,8 @@
 #include "error.h"
 #include "element.h"
 
+#define OOLONG_LABEL_SUPPORTED_STATES OOLONG_ELEMENT_STATE_NORMAL
+
 typedef struct oolong_label_s oolong_label_t;
 typedef struct oolong_label_options_s oolong_label_options_t;
 

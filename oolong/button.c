@@ -5,8 +5,6 @@
 
 #include "button.h"
 
-#define OOLONG_BUTTON_SUPPORTED_STATES OOLONG_ELEMENT_STATE_NORMAL | OOLONG_ELEMENT_STATE_SELECTED | OOLONG_ELEMENT_STATE_DISABLED
-
 struct oolong_button_s
 {
 	oolong_element_t element_data;

@@ -9,6 +9,8 @@
 #include "error.h"
 #include "element.h"
 
+#define OOLONG_BUTTON_SUPPORTED_STATES OOLONG_ELEMENT_STATE_NORMAL | OOLONG_ELEMENT_STATE_SELECTED | OOLONG_ELEMENT_STATE_DISABLED
+
 typedef struct oolong_button_s oolong_button_t;
 typedef struct oolong_button_options_s oolong_button_options_t;
 

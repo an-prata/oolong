@@ -5,8 +5,6 @@
 
 #include "label.h"
 
-#define OOLONG_LABEL_SUPPORTED_STATES OOLONG_ELEMENT_STATE_NORMAL
-
 struct oolong_label_s
 {
 	oolong_element_t element_data;
