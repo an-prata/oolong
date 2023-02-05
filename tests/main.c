@@ -8,6 +8,7 @@
 #include "error_tests.h"
 #include "style_set_tests.h"
 #include "keyboard_tests.h"
+#include "element_tests.h"
 
 int main()
 {
@@ -16,6 +17,11 @@ int main()
         error_test,
         style_set_add_test,
         buffered_keys_test,
+        element_selected_index_test,
+        element_selected_identifier_test,
+        element_render_test,
+        element_select_next_test,
+        element_select_previous_test,
         NULL
     };
 
