@@ -3,8 +3,8 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#ifndef ELEMENT_H
-#define ELEMENT_H
+#ifndef OOLONG_ELEMENT_H
+#define OOLONG_ELEMENT_H
 
 #include <stdlib.h>
 #include "styling.h"
@@ -66,8 +66,8 @@ struct oolong_element_s
 	oolong_element_state_t supported_states;		/* The supported states of the element. */
 	oolong_element_state_t state;					/* Current state of the element. */
 	oolong_element_content_alignment_t alignment;	/* Alignment of content within the element. */
-	size_t padding;									/* Padding of content within the element. */
-	size_t width;									/* Minimum width of the element, it may extend further. */
+	unsigned int padding;							/* Padding of content within the element. */
+	unsigned int width;								/* Minimum width of the element, it may extend further. */
 	oolong_style_set_t* style_normal;				/* Style while state is normal. */
 	oolong_style_set_t* style_selected;				/* Style while state is selected. */
 	oolong_style_set_t* style_active;				/* Style while state is active. */
@@ -125,5 +125,5 @@ oolong_error_t oolong_element_select_next(oolong_element_t** elements);
  */
 oolong_error_t oolong_element_select_previous(oolong_element_t** elements);
 
-#endif // ELEMENT_H
+#endif // OOLONG_ELEMENT_H
 
