@@ -36,6 +36,7 @@ oolong_button_t* oolong_button_create(oolong_button_options_t* options)
 	button->element_data.width 				= options->width;
 	button->element_data.style_normal 		= options->style_normal;
 	button->element_data.style_selected 	= options->style_selected;
+	button->element_data.style_active		= NULL;
 	button->element_data.style_disabled 	= options->style_disabled;
 	button->element_data.content 			= options->content;
 	button->element_data.string 			= NULL;
@@ -48,6 +49,9 @@ oolong_error_t oolong_button_destroy(oolong_button_t* button)
 	if (button == NULL)
 		return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 
+	oolong_style_set_destroy(button->element_data.style_normal);
+	oolong_style_set_destroy(button->element_data.style_selected);
+	oolong_style_set_destroy(button->element_data.style_disabled);
 	free(button->element_data.string);
 	free(button);
 	return OOLONG_ERROR_NONE;

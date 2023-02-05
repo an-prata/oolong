@@ -33,9 +33,8 @@ struct oolong_button_options_s
 oolong_button_t* oolong_button_create(oolong_button_options_t* options);
 
 /*
- * Frees all memory used by the button. This will not free memory used by 
- * pointer members of the options struct given while creating the button as
- * this memory may not have been dynamically allocated.
+ * Frees all memory used by the button. This will not free the content member
+ * given with the options struct while creating the button.
  */
 oolong_error_t oolong_button_destroy(oolong_button_t* button);
 
