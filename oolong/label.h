@@ -37,3 +37,4 @@ oolong_label_t* oolong_label_create(oolong_label_options_t* options);
 oolong_error_t oolong_label_destroy(oolong_label_t* label);
 
 #endif // OOLONG_LABEL_H
+

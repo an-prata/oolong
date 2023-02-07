@@ -130,7 +130,8 @@ oolong_error_t oolong_element_select_previous(oolong_element_t** elements)
 	while (selected_index_previous != selected_index)
 	{
 		if (selected_index_previous < 0)
-			for (; elements[selected_index_previous + 1] != NULL; selected_index_previous++);
+			while (elements[selected_index_previous + 1] != NULL)
+				selected_index_previous++;
 
 		if (elements[selected_index_previous]->supported_states & OOLONG_ELEMENT_STATE_SELECTED)
 		{
