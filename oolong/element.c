@@ -84,7 +84,17 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 	return OOLONG_ERROR_NONE;
 }
 
-#include <stdio.h>
+wchar_t* oolong_element_get_string(oolong_element_t* element)
+{
+	if (element == NULL)
+	{
+		oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+		return NULL;
+	}
+
+	return element->string;
+}
+
 oolong_error_t oolong_element_select_next(oolong_element_t** elements)
 {
 	if (elements == NULL)

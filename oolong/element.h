@@ -102,6 +102,11 @@ ssize_t oolong_element_get_selected_index(oolong_element_t** elements);
 oolong_error_t oolong_element_render_string(oolong_element_t* element);
 
 /*
+ * Gets the element's rendered string.
+ */
+wchar_t* oolong_element_get_string(oolong_element_t* element);
+
+/*
  * Sets the first found selected element's state to normal and makes the next 
  * element found to support the selected state selected. This function will 
  * loop from the end of the given array of elements back to the beginning if no
