@@ -16,6 +16,9 @@ struct oolong_text_box_s
 
 static bool contains_key(oolong_key_t* key_array, oolong_key_t key)
 {
+	if (key_array == NULL)
+		return false;
+	
 	for (size_t index = 0; key_array[index] != KEY_NULL; index++)
 		if (key_array[index] == key)
 			return true;
@@ -81,13 +84,13 @@ oolong_error_t oolong_text_box_register_keystroke(oolong_text_box_t* text_box, o
 	if (text_box->element_data.state == OOLONG_ELEMENT_STATE_SELECTED && contains_key(text_box->activation_keys, key))
 	{
 		text_box->element_data.state = OOLONG_ELEMENT_STATE_ACTIVE;
-		return OOLONG_ERROR_NONE;
+		goto update_content;
 	}
 
 	if (text_box->element_data.state == OOLONG_ELEMENT_STATE_ACTIVE && contains_key(text_box->deactivation_keys, key))
 	{
 		text_box->element_data.state = OOLONG_ELEMENT_STATE_SELECTED;
-		return OOLONG_ERROR_NONE;
+		goto update_content;
 	}
 
 	size_t entered_text_length = wcslen(text_box->entered_text);
@@ -99,7 +102,7 @@ oolong_error_t oolong_text_box_register_keystroke(oolong_text_box_t* text_box, o
 
 		/*
 		 * This reallocation is not strictly necessary but I do it anyways since it 
-		 * will prevent text boxs from taking up an abatrary amount of memory. Bonous
+		 * will prevent text boxes from taking up an abatrary amount of memory. Bonous
 		 * is that reallocating to less memory costs very little.
 		 */
 
@@ -112,6 +115,7 @@ oolong_error_t oolong_text_box_register_keystroke(oolong_text_box_t* text_box, o
 		text_box->entered_text[entered_text_length] = L'\0';
 		text_box->entered_text = new_text;
 		return OOLONG_ERROR_NONE;
+		goto update_content;
 	}
 
 	/*
@@ -130,6 +134,16 @@ oolong_error_t oolong_text_box_register_keystroke(oolong_text_box_t* text_box, o
 	text_box->entered_text = new_text;
 	text_box->entered_text[entered_text_length] = L'\0';
 	text_box->entered_text[entered_text_length - 1] = (wchar_t)key;
+	goto update_content;
+	
+update_content:
+	if (text_box->element_data.state == OOLONG_ELEMENT_STATE_ACTIVE || wcslen(text_box->entered_text) > 0)
+	{
+		text_box->element_data.content = text_box->entered_text;
+		return OOLONG_ERROR_NONE;
+	}
+
+	text_box->element_data.content = text_box->display_text;
 	return OOLONG_ERROR_NONE;
 }
 
