@@ -9,6 +9,7 @@
 #include "style_set_tests.h"
 #include "keyboard_tests.h"
 #include "element_tests.h"
+#include "text_box_tests.h"
 
 int main()
 {
@@ -22,6 +23,7 @@ int main()
         element_render_test,
         element_select_next_test,
         element_select_previous_test,
+        text_box_register_key_test,
         NULL
     };
 
