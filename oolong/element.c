@@ -3,6 +3,7 @@
  * See LICENSE file in repository root for complete license text.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include "element.h"
 
@@ -54,14 +55,23 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 	element_string_length += wcslen(current_style);
 	element_string_length += wcslen(OOLONG_STYLE_CLEAR_STRING);
 	
-	if (element->string == NULL || element_string_length > wcslen(element->string))
+	if (element->string == NULL)
 	{
-		wchar_t* new_string = calloc(element_string_length + 1, sizeof(wchar_t));
+		wchar_t* new_string = calloc(element_string_length + 1, sizeof *element->string);
 
 		if (new_string == NULL)
 			return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
 		
-		free(element->string);
+		element->string = new_string;
+		element->string[element_string_length] = L'\0';
+	}
+	else if (element_string_length != wcslen(element->string))
+	{
+		wchar_t* new_string = reallocarray(element->string, element_string_length + 1, sizeof *element->string);
+
+		if (new_string == NULL)
+			return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
+		
 		element->string = new_string;
 		element->string[element_string_length] = L'\0';
 	}
@@ -71,14 +81,44 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 	wcscpy(element->string, current_style);
 	current_index += wcslen(current_style);
 
-	wmemset(&element->string[current_index], L' ', element->padding);
-	current_index += element->padding;
+	unsigned int total_spaces = element_string_length - wcslen(current_style) - wcslen(OOLONG_STYLE_CLEAR_STRING) - wcslen(element->content) - (2 * element->padding);
+	unsigned int preceding_spaces;
+	unsigned int following_spaces;
 	
+	switch (element->alignment)
+	{
+		case (OOLONG_ELEMENT_CONTENT_ALIGN_LEFT):
+		{
+			preceding_spaces = element->padding;
+			following_spaces = total_spaces + element->padding;
+			break;
+		}
+
+		case (OOLONG_ELEMENT_CONTENT_ALIGN_CENTER):
+		{
+			unsigned int remainder = total_spaces % 2;
+			unsigned int half_spaces = (total_spaces - remainder) / 2;
+			preceding_spaces = half_spaces + element->padding;
+			following_spaces = half_spaces + element->padding + remainder;
+			break;
+		}
+
+		case (OOLONG_ELEMENT_CONTENT_ALIGN_RIGHT):
+		{
+			preceding_spaces = total_spaces + element->padding;
+			following_spaces = element->padding;
+			break;
+		}
+	}
+
+	wmemset(&element->string[current_index], L' ', preceding_spaces);
+	current_index += preceding_spaces;
+
 	wcscpy(&element->string[current_index], element->content);
 	current_index += wcslen(element->content);
 
-	wmemset(&element->string[current_index], L' ', element_string_length - wcslen(OOLONG_STYLE_CLEAR_STRING) - current_index);
-	current_index += element_string_length - wcslen(OOLONG_STYLE_CLEAR_STRING) - current_index;
+	wmemset(&element->string[current_index], L' ', following_spaces);
+	current_index += following_spaces;
 
 	wcscpy(&element->string[current_index], OOLONG_STYLE_CLEAR_STRING);
 	return OOLONG_ERROR_NONE;

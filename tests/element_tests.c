@@ -97,7 +97,8 @@ SCRUTINY_UNIT_TEST element_render_test(void)
 			.style_selected = oolong_style_set_create(),
 			.content = L"Content",
 			.width = 20,
-			.state = OOLONG_ELEMENT_STATE_NORMAL
+			.state = OOLONG_ELEMENT_STATE_NORMAL,
+			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_LEFT
 		};
 
 		oolong_element_render_string(&element);
@@ -105,6 +106,42 @@ SCRUTINY_UNIT_TEST element_render_test(void)
 	}
 
 	/* Element 2: */
+	{
+		wchar_t* expected = L"           Content  " OOLONG_STYLE_CLEAR_STRING;
+		oolong_element_t element =
+		{
+			.padding = 2,
+			.style_normal = oolong_style_set_create(),
+			.style_selected = oolong_style_set_create(),
+			.content = L"Content",
+			.width = 20,
+			.state = OOLONG_ELEMENT_STATE_NORMAL,
+			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_RIGHT
+		};
+
+		oolong_element_render_string(&element);
+		scrutiny_assert_equal_array(expected, element.string, sizeof(wchar_t), wcslen(expected) + 1);
+	}
+
+	/* Element 3: */
+	{
+		wchar_t* expected = L"      Content       " OOLONG_STYLE_CLEAR_STRING;
+		oolong_element_t element =
+		{
+			.padding = 2,
+			.style_normal = oolong_style_set_create(),
+			.style_selected = oolong_style_set_create(),
+			.content = L"Content",
+			.width = 20,
+			.state = OOLONG_ELEMENT_STATE_NORMAL,
+			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_CENTER
+		};
+
+		oolong_element_render_string(&element);
+		scrutiny_assert_equal_array(expected, element.string, sizeof(wchar_t), wcslen(expected) + 1);
+	}
+
+	/* Element 4: */
 	{
 		oolong_style_set_t* style_one = oolong_style_set_create();
 		oolong_style_set_t* style_two = oolong_style_set_create();
@@ -128,7 +165,8 @@ SCRUTINY_UNIT_TEST element_render_test(void)
 			.style_selected = style_two,
 			.content = L"Content",
 			.width = 20,
-			.state = OOLONG_ELEMENT_STATE_NORMAL
+			.state = OOLONG_ELEMENT_STATE_NORMAL,
+			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_LEFT
 		};
 
 		oolong_element_render_string(&element);
