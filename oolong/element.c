@@ -38,7 +38,8 @@ ssize_t oolong_element_get_selected_index(oolong_element_t** elements)
 oolong_error_t oolong_element_render_string(oolong_element_t* element)
 {
 	size_t element_string_length = 0;
-	oolong_style_set_t* current_style = NULL;
+	wchar_t* current_style = NULL;
+	wchar_t* current_stye_end = OOLONG_STYLE_CLEAR_STRING;
 
 	switch (element->state)
 	{
@@ -48,12 +49,26 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 		case (OOLONG_ELEMENT_STATE_DISABLED):	current_style = element->style_disabled;	break;
 	}
 
+	if (current_style == NULL)
+	{
+		current_style = L"";
+		current_stye_end = L"";
+
+		element->preceding_style_size = 0;
+		element->following_style_size = 0;
+	}
+	else
+	{
+		element->preceding_style_size = wcslen(current_style);
+		element->following_style_size = wcslen(current_stye_end);
+	}
+
 	element_string_length += element->padding * 2;
 	element_string_length += wcslen(element->content);
 	element_string_length = element_string_length < element->width ? element->width : element_string_length;
 
-	element_string_length += wcslen(current_style);
-	element_string_length += wcslen(OOLONG_STYLE_CLEAR_STRING);
+	element_string_length += element->preceding_style_size;
+	element_string_length += element->following_style_size;
 	
 	if (element->string == NULL)
 	{
@@ -79,7 +94,7 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 	size_t current_index = 0;
 
 	wcscpy(element->string, current_style);
-	current_index += wcslen(current_style);
+	current_index += element->preceding_style_size;
 
 	unsigned int total_spaces = element_string_length - wcslen(current_style) - wcslen(OOLONG_STYLE_CLEAR_STRING) - wcslen(element->content) - (2 * element->padding);
 	unsigned int preceding_spaces;
@@ -87,14 +102,14 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 	
 	switch (element->alignment)
 	{
-		case (OOLONG_ELEMENT_CONTENT_ALIGN_LEFT):
+		case (OOLONG_ALIGN_LEFT):
 		{
 			preceding_spaces = element->padding;
 			following_spaces = total_spaces + element->padding;
 			break;
 		}
 
-		case (OOLONG_ELEMENT_CONTENT_ALIGN_CENTER):
+		case (OOLONG_ALIGN_CENTER):
 		{
 			unsigned int remainder = total_spaces % 2;
 			unsigned int half_spaces = (total_spaces - remainder) / 2;
@@ -103,11 +118,21 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 			break;
 		}
 
-		case (OOLONG_ELEMENT_CONTENT_ALIGN_RIGHT):
+		case (OOLONG_ALIGN_RIGHT):
 		{
 			preceding_spaces = total_spaces + element->padding;
 			following_spaces = element->padding;
 			break;
+		}
+
+		case (OOLONG_ALIGN_WIDTH):
+		{
+			/*
+			 * Width align is not implementable here and can only be managed cleanly from
+			 * whatever knows the margins of the current view.
+			 */
+
+			return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 		}
 	}
 
@@ -120,7 +145,7 @@ oolong_error_t oolong_element_render_string(oolong_element_t* element)
 	wmemset(&element->string[current_index], L' ', following_spaces);
 	current_index += following_spaces;
 
-	wcscpy(&element->string[current_index], OOLONG_STYLE_CLEAR_STRING);
+	wcscpy(&element->string[current_index], current_stye_end);
 	return OOLONG_ERROR_NONE;
 }
 
@@ -150,7 +175,10 @@ oolong_error_t oolong_element_select_next(oolong_element_t** elements)
 	while (selected_index_next != selected_index)
 	{
 		if (elements[selected_index_next] == NULL)
+		{
 			selected_index_next = 0;
+			continue;
+		}
 
 		if (elements[selected_index_next]->supported_states & OOLONG_ELEMENT_STATE_SELECTED)
 		{
@@ -194,5 +222,28 @@ oolong_error_t oolong_element_select_previous(oolong_element_t** elements)
 	}
 
 	return OOLONG_ERROR_NONE;
+}
+
+size_t oolong_element_get_preceding_style_size(oolong_element_t* element)
+{
+	if (element == NULL || element->string == NULL)
+	{
+		oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+		return 0;
+	}
+
+	return element->preceding_style_size;
+}
+
+size_t oolong_element_get_following_style_size(oolong_element_t* element)
+{
+	
+	if (element == NULL || element->string == NULL)
+	{
+		oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+		return 0;
+	}
+
+	return element->following_style_size;
 }
 
