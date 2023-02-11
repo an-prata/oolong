@@ -9,18 +9,19 @@
 
 typedef struct winsize window_size_t;
 
-oolong_screen_dimensions_t oolong_get_screen_dimensions(void)
+oolong_error_t oolong_get_screen_dimensions(unsigned int* columns, unsigned int* rows)
 {
     window_size_t window_size;
 
     if (ioctl(STDIN_FILENO, TIOCGWINSZ, &window_size) == -1)
-    {
-        oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
-        oolong_screen_dimensions_t dimensions = { .columns = 0, .rows = 0 };
-        return dimensions;
-    }
+        return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
 
-    oolong_screen_dimensions_t dimensions = { .columns = window_size.ws_col, .rows = window_size.ws_row};
-    return dimensions;
+    if (columns != NULL)
+        *columns = window_size.ws_col;
+
+    if (rows != NULL)
+        *rows = window_size.ws_row;
+
+    return OOLONG_ERROR_NONE;
 }
 
