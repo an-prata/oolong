@@ -19,7 +19,7 @@ struct oolong_text_box_options_s
 {
 	enum_t identifier;
 	oolong_element_state_t state;
-	oolong_element_content_alignment_t alignment;
+	oolong_alignment_t alignment;
 	unsigned int padding;
 	unsigned int width;
 	oolong_style_set_t* style_normal;

@@ -17,7 +17,7 @@ typedef struct oolong_label_options_s oolong_label_options_t;
 struct oolong_label_options_s
 {
 	enum_t identifier;
-	oolong_element_content_alignment_t alignment;
+	oolong_alignment_t alignment;
 	unsigned int padding;
 	unsigned int width;
 	oolong_style_set_t* style;

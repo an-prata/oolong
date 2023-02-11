@@ -40,16 +40,17 @@ enum oolong_element_state_e
  * not render centered, left, or right as it renders only to a string its exact
  * size therefore placing the element's overall alignment on the view.
  */
-enum oolong_element_content_alignment_e
+enum oolong_alignment_e
 {
-	OOLONG_ELEMENT_CONTENT_ALIGN_LEFT,
-	OOLONG_ELEMENT_CONTENT_ALIGN_CENTER,
-	OOLONG_ELEMENT_CONTENT_ALIGN_RIGHT
+	OOLONG_ALIGN_LEFT,
+	OOLONG_ALIGN_CENTER,
+	OOLONG_ALIGN_RIGHT,
+	OOLONG_ALIGN_WIDTH
 };
 
 typedef int enum_t;
 typedef enum oolong_element_state_e oolong_element_state_t;
-typedef enum oolong_element_content_alignment_e oolong_element_content_alignment_t;
+typedef enum oolong_alignment_e oolong_alignment_t;
 typedef struct oolong_element_s oolong_element_t;
 
 /*
@@ -62,18 +63,20 @@ typedef struct oolong_element_s oolong_element_t;
 
 struct oolong_element_s
 {
-	enum_t identifier;								/* The enum value (or int) by which the element will be identified. */
-	oolong_element_state_t supported_states;		/* The supported states of the element. */
-	oolong_element_state_t state;					/* Current state of the element. */
-	oolong_element_content_alignment_t alignment;	/* Alignment of content within the element. */
-	unsigned int padding;							/* Padding of content within the element. */
-	unsigned int width;								/* Minimum width of the element, it may extend further. */
-	oolong_style_set_t* style_normal;				/* Style while state is normal. */
-	oolong_style_set_t* style_selected;				/* Style while state is selected. */
-	oolong_style_set_t* style_active;				/* Style while state is active. */
-	oolong_style_set_t* style_disabled;				/* Style while state is disabled. */
-	wchar_t* content;								/* Pointer to the element's content. */
-	wchar_t* string;								/* Output of rendering the element. */
+	enum_t identifier;							/* The enum value (or int) by which the element will be identified. */
+	oolong_element_state_t supported_states;	/* The supported states of the element. */
+	oolong_element_state_t state;				/* Current state of the element. */
+	oolong_alignment_t alignment;				/* Alignment of content within the element. */
+	unsigned int padding;						/* Padding of content within the element. */
+	unsigned int width;							/* Minimum width of the element, it may extend further. */
+	oolong_style_set_t* style_normal;			/* Style while state is normal. */
+	oolong_style_set_t* style_selected;			/* Style while state is selected. */
+	oolong_style_set_t* style_active;			/* Style while state is active. */
+	oolong_style_set_t* style_disabled;			/* Style while state is disabled. */
+	wchar_t* content;							/* Pointer to the element's content. */
+	wchar_t* string;							/* Output of rendering the element. */
+	size_t preceding_style_size;				/* Number of style characters at the beginning of the rendered string. */
+	size_t following_style_size;				/* Number of style characters at the end of the rendered string. */
 };
 
 /*
@@ -129,6 +132,18 @@ oolong_error_t oolong_element_select_next(oolong_element_t** elements);
  * finding a selection is not considered an error and simply returns.
  */
 oolong_error_t oolong_element_select_previous(oolong_element_t** elements);
+
+/*
+ * Gets the number of characters that belong to the zero width style escape
+ * sequence that precede the displayed characters of the element.
+ */
+size_t oolong_element_get_preceding_style_size(oolong_element_t* element);
+
+/*
+ * Gets the number of characters that belong to the zero width style escape
+ * sequence that follow the displayed characters of the element.
+ */
+size_t oolong_element_get_following_style_size(oolong_element_t* element);
 
 #endif // OOLONG_ELEMENT_H
 
