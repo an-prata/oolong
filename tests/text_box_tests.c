@@ -22,7 +22,7 @@ SCRUTINY_UNIT_TEST text_box_register_key_test(void)
 		.style_disabled = oolong_style_set_create(),
 		.padding = 0,
 		.width = 0,
-		.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_LEFT,
+		.alignment = OOLONG_ALIGN_LEFT,
 		.identifier = 0
 	};
 	
@@ -38,3 +38,4 @@ SCRUTINY_UNIT_TEST text_box_register_key_test(void)
 	scrutiny_assert_equal_array(input_text, text_box_string, sizeof(wchar_t), wcslen(input_text));
 	oolong_text_box_destroy(text_box);
 }
+

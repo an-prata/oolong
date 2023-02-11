@@ -98,7 +98,7 @@ SCRUTINY_UNIT_TEST element_render_test(void)
 			.content = L"Content",
 			.width = 20,
 			.state = OOLONG_ELEMENT_STATE_NORMAL,
-			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_LEFT
+			.alignment = OOLONG_ALIGN_LEFT
 		};
 
 		oolong_element_render_string(&element);
@@ -116,7 +116,7 @@ SCRUTINY_UNIT_TEST element_render_test(void)
 			.content = L"Content",
 			.width = 20,
 			.state = OOLONG_ELEMENT_STATE_NORMAL,
-			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_RIGHT
+			.alignment = OOLONG_ALIGN_RIGHT
 		};
 
 		oolong_element_render_string(&element);
@@ -134,7 +134,7 @@ SCRUTINY_UNIT_TEST element_render_test(void)
 			.content = L"Content",
 			.width = 20,
 			.state = OOLONG_ELEMENT_STATE_NORMAL,
-			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_CENTER
+			.alignment = OOLONG_ALIGN_CENTER
 		};
 
 		oolong_element_render_string(&element);
@@ -166,7 +166,7 @@ SCRUTINY_UNIT_TEST element_render_test(void)
 			.content = L"Content",
 			.width = 20,
 			.state = OOLONG_ELEMENT_STATE_NORMAL,
-			.alignment = OOLONG_ELEMENT_CONTENT_ALIGN_LEFT
+			.alignment = OOLONG_ALIGN_LEFT
 		};
 
 		oolong_element_render_string(&element);
