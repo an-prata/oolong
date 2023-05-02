@@ -4,6 +4,7 @@
  */
 
 #include <stdio.h>
+#include "error.h"
 #include "screen.h"
 #include "stack_view.h"
 
@@ -145,5 +146,7 @@ oolong_error_t oolong_stack_view_print(oolong_stack_view_t* view, file_t* file)
 		case (OOLONG_ALIGN_RIGHT):	return print_right_aligned(view, file);
 		case (OOLONG_ALIGN_WIDTH):	return print_width_aligned(view, file);
 	}
+
+	return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 }
 
