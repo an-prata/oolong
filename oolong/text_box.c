@@ -34,32 +34,33 @@ oolong_text_box_t* oolong_text_box_create(oolong_text_box_options_t* options)
 		return NULL;
 	}
 
-	oolong_text_box_t* label = malloc(sizeof *label);
+	oolong_text_box_t* text_box = malloc(sizeof *text_box);
 
-	if (label == NULL)
+	if (text_box == NULL)
 	{
 		oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
 		return NULL;
 	}
 
-	label->element_data.identifier 			= options->identifier;
-	label->element_data.supported_states 	= OOLONG_TEXT_BOX_SUPPORTED_STATES;
-	label->element_data.state 				= options->state;
-	label->element_data.alignment 			= options->alignment;
-	label->element_data.padding 			= options->padding;
-	label->element_data.width 				= options->width;
-	label->element_data.style_normal 		= options->style_normal;
-	label->element_data.style_selected 		= options->style_selected;
-	label->element_data.style_active		= options->style_active;
-	label->element_data.style_disabled 		= options->style_disabled;
-	label->element_data.string 				= NULL;
+	text_box->activation_keys		= options->activations_keys;
+	text_box->deactivation_keys		= options->activations_keys;
+	text_box->display_text			= options->display_text;
+	text_box->entered_text			= calloc(1, sizeof *text_box->entered_text);
 
-	label->display_text	= options->display_text;
-	label->entered_text = calloc(1, sizeof *label->entered_text);
-
-	label->element_data.content = label->display_text;
+	text_box->element_data.identifier 			= options->identifier;
+	text_box->element_data.supported_states 	= OOLONG_TEXT_BOX_SUPPORTED_STATES;
+	text_box->element_data.state 				= options->state;
+	text_box->element_data.alignment 			= options->alignment;
+	text_box->element_data.padding 				= options->padding;
+	text_box->element_data.width 				= options->width;
+	text_box->element_data.style_normal 		= options->style_normal;
+	text_box->element_data.style_selected 		= options->style_selected;
+	text_box->element_data.style_active			= options->style_active;
+	text_box->element_data.style_disabled 		= options->style_disabled;
+	text_box->element_data.string 				= NULL;
+	text_box->element_data.content				= text_box->display_text;
 	
-	return label;
+	return text_box;
 }
 
 oolong_error_t oolong_text_box_destroy(oolong_text_box_t* text_box)
@@ -114,7 +115,6 @@ oolong_error_t oolong_text_box_register_keystroke(oolong_text_box_t* text_box, o
 
 		text_box->entered_text[entered_text_length] = L'\0';
 		text_box->entered_text = new_text;
-		return OOLONG_ERROR_NONE;
 		goto update_content;
 	}
 
