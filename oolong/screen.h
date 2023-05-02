@@ -15,18 +15,11 @@
 /* For convinience, any locale can be used but this is whats tested. */
 #define oolong_set_locale() setlocale(LC_CTYPE, "C.UTF-8")
 
-typedef struct oolong_screen_dimensions_s oolong_screen_dimensions_t;
-
-struct oolong_screen_dimensions_s
-{
-    size_t columns;
-    size_t rows;
-};
-
 /*
- * The the dimensions of the current terminal screen.
+ * The the dimensions of the current terminal screen. Passing NULL will discard
+ * that part of the operations result.
  */
-oolong_screen_dimensions_t oolong_get_screen_dimensions(void);
+oolong_error_t oolong_get_screen_dimensions(unsigned int* columns, unsigned int* rows);
 
 #endif // OOLONG_SCREEN_H
 

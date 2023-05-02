@@ -14,10 +14,12 @@
 #include "escapes.h"
 #include "keyboard.h"
 #include "screen.h"
-#include "stack_view.h"
-#include "dialog_view.h"
-#include "page.h"
 #include "styling.h"
+
+#include "element.h"
+#include "label.h"
+#include "button.h"
+#include "text_box.h"
 
 #endif // OOLONG_H
 

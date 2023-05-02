@@ -4,6 +4,7 @@
  */
 
 #include "styling.h"
+#include <stdio.h>
 
 static const wchar_t* style_escapes[] =
 {
@@ -31,7 +32,7 @@ static const wchar_t* style_escapes[] =
 
 oolong_style_set_t* oolong_style_set_create()
 {
-    oolong_style_set_t* style_set = calloc(1, sizeof(wchar_t));
+    oolong_style_set_t* style_set = calloc(1, sizeof *style_set);
     style_set[0] = L'\0';
     return style_set;
 }

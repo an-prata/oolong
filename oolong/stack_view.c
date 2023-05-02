@@ -3,599 +3,150 @@
  * See LICENSE file in repository root for complete license text.
  */
 
-#include <stdlib.h>
-#include <stdint.h>
+#include <stdio.h>
+#include "error.h"
 #include "screen.h"
-#include "escapes.h"
 #include "stack_view.h"
 
-struct oolong_stack_view_s
+static oolong_error_t print_left_aligned(oolong_stack_view_t* view, file_t* file)
 {
-    oolong_stack_view_options_t* options;
-    oolong_stack_view_element_t** elements;
-};
+	unsigned int columns;
+	unsigned int content_columns;
 
-static oolong_error_t print_text_box(oolong_stack_view_text_box_data_t* text_box, oolong_stack_view_options_t* options, file_t* file)
-{
-    if (text_box->entered_text == NULL)
-        text_box->entered_text = calloc(1, sizeof(wchar_t));
-    
-    if ((text_box->state == OOLONG_ELEMENT_STATE_SELECTED && text_box->entered_text[0] != L'\0') || text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
-        fwprintf(file, L"%ls", text_box->entered_style_selected);
-    else if (text_box->state == OOLONG_ELEMENT_STATE_SELECTED)
-        fwprintf(file, L"%ls", text_box->display_style_selected);
-    else if (text_box->entered_text[0] != L'\0')
-        fwprintf(file, L"%ls", text_box->entered_style);
-    else
-        fwprintf(file, L"%ls", text_box->display_style);
-    
-    size_t printed_characters = 0;
-    
-    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-        fputwc(L' ', file);
+	oolong_get_screen_dimensions(&columns, NULL);
+	content_columns = columns - (2 * view->margin_sides);
 
-    if (text_box->entered_text[0] != L'\0' || text_box->state == OOLONG_ELEMENT_STATE_ACTIVE)
-    {
-        for (size_t index = 0; text_box->entered_text[index] != L'\0'; index++)
-        {
-            fputwc(text_box->entered_text[index], file);
-            printed_characters += wcwidth(text_box->entered_text[index]);
-        }
-    }
-    else
-    {
-        for (size_t index = 0; text_box->display_text[index] != L'\0'; index++)
-        {
-            fputwc(text_box->display_text[index], file);
-            printed_characters += wcwidth(text_box->display_text[index]);
-        }
-    }
+	for (size_t index = 0; view->elements[index]; index++)
+	{
+		for (unsigned int i = 0; i < view->margin_sides; i++)
+			putwc(L' ', file);
 
-    if (options->align == OOLONG_ALIGN_WIDTH)
-    {
-        oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+		oolong_element_render_string(view->elements[index]);
+		wchar_t* element_string = oolong_element_get_string(view->elements[index]);
 
-        if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-            return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
+		for (size_t element_string_index = 0; element_string[element_string_index] != L'\0'; element_string_index++)
+		{
+			if ((element_string_index - oolong_element_get_preceding_style_size(view->elements[index])) % (content_columns - 1))
+				putwc(L'\n', file);
 
-        for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
-            fputwc(L' ', file);
-    }
-    else
-    {
-        for (; printed_characters < options->element_width - options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-    }
-    
-    for (size_t index = 0; index < options->element_padding; index++)
-        fputwc(L' ', file);
+			putwc(element_string[element_string_index], file);
+		}
 
-    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
+		if (view->elements[index + 1])
+			for (unsigned int i = 0; i < view->element_gap; i++)
+				putwc(L'\n', file);
+	}
 
-    return OOLONG_ERROR_NONE;
+	if (ferror(file))
+		return oolong_error_record(OOLONG_ERROR_FAILED_IO_WRITE);
+
+	return OOLONG_ERROR_NONE;
 }
 
-static oolong_error_t print_button(oolong_stack_view_button_data_t* button, oolong_stack_view_options_t* options, file_t* file)
+static oolong_error_t print_center_aligned(oolong_stack_view_t* view, file_t* file)
 {
-    if (button->state == OOLONG_ELEMENT_STATE_SELECTED)
-        fwprintf(file, L"%ls", button->style_selected);
-    else
-        fwprintf(file, L"%ls", button->style);
+	unsigned int columns;
+	unsigned int content_columns;
 
-    size_t printed_characters = 0;
-    
-    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-        fputwc(L' ', file);
+	oolong_get_screen_dimensions(&columns, NULL);
+	content_columns = columns - (2 * view->margin_sides);
 
-    for (size_t index = 0; button->text[index] != L'\0'; index++)
-    {
-        fputwc(button->text[index], file);
-        printed_characters += wcwidth(button->text[index]);
-    }
+	for (size_t index = 0; view->elements[index]; index++)
+	{
+		oolong_element_render_string(view->elements[index]);
+		
+		unsigned int preceding_spaces = 0;
+		wchar_t* element_string = oolong_element_get_string(view->elements[index]);
+		size_t element_string_length = wcslen(element_string) - oolong_element_get_preceding_style_size(view->elements[index]) - oolong_element_get_following_style_size(view->elements[index]);
 
-    if (options->align == OOLONG_ALIGN_WIDTH)
-    {
-        oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+		if (element_string_length < content_columns)
+		{
+			unsigned int total_spaces = content_columns - element_string_length;
+			unsigned int remainder = total_spaces % content_columns;
+			preceding_spaces = (total_spaces - remainder) / 2;
+		}
 
-        if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-            return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
+		for (unsigned int i = 0; i < preceding_spaces; i++)
+			putwc(L' ', file);
 
-        for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
-            fputwc(L' ', file);
-    }
-    else
-    {
-        for (; printed_characters < options->element_width - options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-    }
+		fwprintf(file, L"%ls\n", element_string);
 
-    for (size_t index = 0; index < options->element_padding; index++)
-        fputwc(L' ', file);
+		if (view->elements[index + 1] != NULL)
+			for (unsigned int i = 0; i < view->element_gap; i++)
+				putwc(L'\n', file);
+	}
 
-    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
+	if (ferror(file))
+		return oolong_error_record(OOLONG_ERROR_FAILED_IO_WRITE);
 
-    return OOLONG_ERROR_NONE;
+	return OOLONG_ERROR_NONE;
 }
 
-static oolong_error_t print_label(oolong_stack_view_label_data_t* label, oolong_stack_view_options_t* options, file_t* file)
+static oolong_error_t print_right_aligned(oolong_stack_view_t* view, file_t* file)
 {
-    size_t printed_characters = 0;
+	unsigned int columns;
+	unsigned int content_columns;
 
-    fwprintf(file, L"%ls", label->style);
+	oolong_get_screen_dimensions(&columns, NULL);
+	content_columns = columns - (2 * view->margin_sides);
 
-    for (printed_characters = 0; printed_characters < options->element_padding; printed_characters++)
-        fputwc(L' ', file);
+	for (size_t index = 0; view->elements[index]; index++)
+	{
+		oolong_element_render_string(view->elements[index]);
 
-    for (size_t index = 0; label->text[index] != L'\0'; index++)
-    {
-        fputwc(label->text[index], file);
-        printed_characters += wcwidth(label->text[index]);
-    }
+		wchar_t* element_string = oolong_element_get_string(view->elements[index]);
+		unsigned int preceding_spaces = 0;
+		size_t element_string_length = wcslen(element_string) - oolong_element_get_preceding_style_size(view->elements[index]) - oolong_element_get_following_style_size(view->elements[index]);
 
-    if (options->align == OOLONG_ALIGN_WIDTH)
-    {
-        oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
+		if (element_string_length < content_columns)
+			preceding_spaces = content_columns - element_string_length;
 
-        if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-            return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
+		for (unsigned int i = 0; i < preceding_spaces; i++)
+			putwc(L' ', file);
 
-        for (; printed_characters < screen_dimensions.columns - (options->view_side_margin * 2); printed_characters++)
-            fputwc(L' ', file);
-    }
-    else
-    {
-        for (; printed_characters < options->element_width - options->element_padding; printed_characters++)
-            fputwc(L' ', file);
-    }
+		fwprintf(file, L"%ls\n", element_string);
 
-    for (size_t index = 0; index < options->element_padding; index++)
-        fputwc(L' ', file);
+		if (view->elements[index + 1])
+			for (unsigned int i = 0; i < view->element_gap; i++)
+				putwc(L'\n', file);
+	}
 
-    fwprintf(file, L"%ls", OOLONG_STYLE_CLEAR_STRING);
+	if (ferror(file))
+		return oolong_error_record(OOLONG_ERROR_FAILED_IO_WRITE);
 
-    return OOLONG_ERROR_NONE;
+	return OOLONG_ERROR_NONE;
 }
 
-static oolong_error_t print_element(oolong_stack_view_element_t* element, oolong_stack_view_options_t* options, file_t* file)
+static oolong_error_t print_width_aligned(oolong_stack_view_t* view, file_t* file)
 {
-    switch (element->type)
-    {
-        case (OOLONG_ELEMENT_TYPE_BUTTON):
-            return print_button(&element->data.button, options, file);
-        case (OOLONG_ELEMENT_TYPE_LABEL):
-            return print_label(&element->data.label, options, file);
-        case (OOLONG_ELEMENT_TYPE_TEXT_BOX):
-            return print_text_box(&element->data.text_box, options, file);
-        default:
-            return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
-    }
+	unsigned int columns;
+	unsigned int content_columns;
+
+	oolong_get_screen_dimensions(&columns, NULL);
+	content_columns = columns - (2 * view->margin_sides);
+
+	for (size_t index = 0; view->elements[index]; index++)
+		view->elements[index]->width = content_columns;
+
+	return print_left_aligned(view, file);
 }
 
-static oolong_error_t print_centered_aligned(oolong_stack_view_t* stack_view, file_t* file)
+oolong_error_t oolong_stack_view_print(oolong_stack_view_t* view, file_t* file)
 {
-    oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
-
-    if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-        return oolong_error_record(OOLONG_ERROR_FAILED_IO_READ);
-
-    for (size_t element = 0; stack_view->elements[element] != NULL; element++)
-    {
-        size_t start_column = 0;
-        size_t default_start = screen_dimensions.columns - (stack_view->options->element_width + stack_view->options->element_padding) - 1;
-        default_start /= 2;
-
-        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-        {
-            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
-            start_column /= 2;
-
-            if (start_column > default_start)
-                start_column = default_start;
-        }
-        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_LABEL)
-        {
-            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
-            start_column /= 2;
-        }
-        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-        {
-            if (stack_view->elements[element]->data.text_box.entered_text == NULL)
-                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
-            else if (stack_view->elements[element]->data.text_box.entered_text[0] != L'\0')
-                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
-            else if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
-                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
-            else
-                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
-
-            start_column = screen_dimensions.columns - start_column - 1;
-            start_column /= 2;
-
-            if (start_column > default_start)
-                start_column = default_start;
-        }
-        
-        for (size_t index = 0; index < start_column; index++)
-            fputwc(L' ', file);
-
-        oolong_error_t error = print_element(stack_view->elements[element], stack_view->options, file);
-
-        if (error != OOLONG_ERROR_NONE)
-            return error;
-        
-        fputwc(L'\n', file);
-
-        for (size_t index = 0; index < stack_view->options->element_gap; index++)
-            fputwc(L'\n', file);
-    }
-
-    return OOLONG_ERROR_NONE;
-}
-
-static oolong_error_t print_left_aligned(oolong_stack_view_t* stack_view, file_t* file)
-{
-    for (size_t element = 0; stack_view->elements[element] != NULL; element++)
-    {
-        for (size_t i = 0; i < stack_view->options->view_side_margin; i++)
-            fputwc(L' ', file);
-
-        oolong_error_t error = print_element(stack_view->elements[element], stack_view->options, file);
-
-        if (error == OOLONG_ERROR_NONE)
-            return error;
-        
-        fputwc(L'\n', file);
-
-        for (size_t i = 0; i < stack_view->options->element_gap; i++)
-            fputwc(L'\n', file);
-    }
-
-    return OOLONG_ERROR_NONE;
-}
-
-static oolong_error_t print_right_aligned(oolong_stack_view_t* stack_view, file_t* file)
-{
-    oolong_screen_dimensions_t screen_dimensions = oolong_get_screen_dimensions();
-
-    if (screen_dimensions.columns == 0 && screen_dimensions.rows == 0)
-        return OOLONG_ERROR_FAILED_IO_READ;
-
-    for (size_t element = 0; stack_view->elements[element] != NULL; element++)
-    {
-        size_t start_column = 0;
-        size_t default_start = screen_dimensions.columns - (stack_view->options->element_width + stack_view->options->element_padding) - 1;
-
-        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-        {
-            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
-            start_column -= stack_view->options->view_side_margin + stack_view->options->element_padding;
-
-            if (start_column > default_start)
-                start_column = default_start;
-        }
-        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_LABEL)
-        {
-            start_column = screen_dimensions.columns - wcslen(stack_view->elements[element]->data.button.text) - 1;
-            start_column -= stack_view->options->view_side_margin + stack_view->options->element_padding;
-        }
-        else if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-        {
-            if (stack_view->elements[element]->data.text_box.entered_text == NULL)
-                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
-            else if (stack_view->elements[element]->data.text_box.entered_text[0] != L'\0')
-                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
-            else if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
-                start_column = wcslen(stack_view->elements[element]->data.text_box.entered_text);
-            else
-                start_column = wcslen(stack_view->elements[element]->data.text_box.display_text);
-
-            start_column = screen_dimensions.columns - start_column - 1;
-            start_column -= stack_view->options->view_side_margin + stack_view->options->element_padding;
-
-            if (start_column > default_start)
-                start_column = default_start;
-        }
-
-        for (size_t i = 0; i < start_column; i++)
-            fputwc(L' ', file);
-
-        oolong_error_t error = print_element(stack_view->elements[element], stack_view->options, file);
-
-        if (error != OOLONG_ERROR_NONE)
-            return error;
-        
-        fputwc(L'\n', file);
-
-        for (size_t i = 0; i < stack_view->options->element_gap; i++)
-            fputwc(L'\n', file);
-    }
-
-    return OOLONG_ERROR_NONE;
-}
-
-oolong_stack_view_t* oolong_stack_view_create(oolong_stack_view_options_t* options)
-{
-    oolong_stack_view_t* stack_view = malloc(sizeof(oolong_stack_view_t));
-
-    if (stack_view == NULL)
-    {
-        oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
-        return NULL;
-    }
-
-    stack_view->options = options;
-    stack_view->elements = calloc(1, sizeof(oolong_stack_view_element_t*));
-
-    return stack_view;
-}
-
-void oolong_stack_view_destroy(oolong_stack_view_t* stack_view)
-{
-    if (stack_view == NULL)
-        return;
-
-    free(stack_view->elements);
-    free(stack_view);
-}
-
-oolong_error_t oolong_stack_view_add_element(oolong_stack_view_t* stack_view, oolong_stack_view_element_t* element)
-{
-    if (stack_view == NULL || element == NULL)
-        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
-
-    size_t final_index = 0;
-    for (; stack_view->elements[final_index] != NULL; final_index++);
-
-    oolong_stack_view_element_t** new_elements = reallocarray(stack_view->elements, final_index + 2, sizeof(oolong_stack_view_element_t*));
-
-    if (new_elements == NULL)
-        return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
-
-    stack_view->elements = new_elements;
-    stack_view->elements[final_index] = element;
-    stack_view->elements[final_index + 1] = NULL;
-    return OOLONG_ERROR_NONE;
-}
-
-enum_t oolong_stack_view_get_selected_identifier(oolong_stack_view_t* stack_view)
-{
-    if (stack_view == NULL)
-        return -1;
-
-    for (size_t index = 0; stack_view->elements[index] != NULL; index++)
-    {
-        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-            if (stack_view->elements[index]->data.button.state == OOLONG_ELEMENT_STATE_SELECTED)
-                return stack_view->elements[index]->identifier;
-        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-            if (stack_view->elements[index]->data.text_box.state == OOLONG_ELEMENT_STATE_SELECTED || stack_view->elements[index]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
-                return stack_view->elements[index]->identifier;
-    }
-
-    return -1;
-}
-
-oolong_error_t oolong_stack_view_select_next_element(oolong_stack_view_t* stack_view)
-{
-    if (stack_view == NULL)
-        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
-
-    size_t index = 0;
-
-    /* Find current selection. */
-
-    for (; stack_view->elements[index] != NULL; index++)
-    {
-        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-        {
-            if (stack_view->elements[index]->data.button.state != OOLONG_ELEMENT_STATE_SELECTED)
-                continue;
-        
-            stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
-            break;
-        }
-
-        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-        {
-            if (stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_SELECTED && stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_ACTIVE)
-                continue;
-        
-            stack_view->elements[index]->data.text_box.state = OOLONG_ELEMENT_STATE_NORMAL;
-            break;
-        }
-    }
-
-    /* Select the next element. */
-
-    for (size_t next_selected = index + 1; next_selected != index; next_selected++)
-    {
-        if (stack_view->elements[next_selected] == NULL)
-            next_selected = 0;
-    
-        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-        {
-            if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
-                continue;
-
-            stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
-            return OOLONG_ERROR_NONE;
-        }
-
-        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-        {
-            if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
-                continue;
-
-            stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
-            return OOLONG_ERROR_NONE;
-        }
-    }
-
-    return OOLONG_ERROR_NONE;
-}
-
-oolong_error_t oolong_stack_view_select_previous_element(oolong_stack_view_t* stack_view)
-{
-    if (stack_view == NULL)
-        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
-
-    size_t index = 0;
-
-    /* Find current selection. */
-
-    for (; stack_view->elements[index] != NULL; index++)
-    {
-        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-        {
-            if (stack_view->elements[index]->data.button.state != OOLONG_ELEMENT_STATE_SELECTED)
-                continue;
-        
-            stack_view->elements[index]->data.button.state = OOLONG_ELEMENT_STATE_NORMAL;
-            break;
-        }
-
-        if (stack_view->elements[index]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-        {
-            if (stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_SELECTED && stack_view->elements[index]->data.text_box.state != OOLONG_ELEMENT_STATE_ACTIVE)
-                continue;
-        
-            stack_view->elements[index]->data.text_box.state = OOLONG_ELEMENT_STATE_NORMAL;
-            break;
-        }
-    }
-
-    /* Select previous element. */
-    
-    for (size_t next_selected = index - 1; next_selected != index; next_selected--)
-    {
-        /*
-         * Lucky for me unsigned underflow is very well defined behavior,
-         * so (size_t)(0 - 1) is always SIZE_MAX, and frankly giving up the
-         * one element to make this possible is fine with me, since any UI
-         * with that many buttons is shit anyways.
-         */
-
-        if (next_selected == SIZE_MAX)
-            for (; stack_view->elements[next_selected + 1] != NULL; next_selected++);
-
-        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_BUTTON)
-        {
-            if (stack_view->elements[next_selected]->data.button.state == OOLONG_ELEMENT_STATE_DISABLED)
-                continue;
-
-            stack_view->elements[next_selected]->data.button.state = OOLONG_ELEMENT_STATE_SELECTED;
-            return OOLONG_ERROR_NONE;
-        }
-
-        if (stack_view->elements[next_selected]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-        {
-            if (stack_view->elements[next_selected]->data.text_box.state == OOLONG_ELEMENT_STATE_DISABLED)
-                continue;
-
-            stack_view->elements[next_selected]->data.text_box.state = OOLONG_ELEMENT_STATE_SELECTED;
-            return OOLONG_ERROR_NONE;
-        }
-    }
-
-    return OOLONG_ERROR_NONE;
-}
-
-bool oolong_stack_view_get_is_text_box_active(oolong_stack_view_t* stack_view)
-{
-    if (stack_view == NULL)
-    {
-        oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
-        return false;
-    }
-
-    for (size_t element = 0; stack_view->elements[element] != NULL; element++)
-        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-            if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
-                return true;
-
-    return false;
-}
-
-oolong_error_t oolong_stack_view_active_text_box_register_key(oolong_stack_view_t* stack_view, oolong_key_t key)
-{
-    if (stack_view == NULL)
-        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
-    
-    oolong_stack_view_text_box_data_t* text_box;
-    
-    for (size_t element = 0; stack_view->elements[element] != NULL; element++)
-        if (stack_view->elements[element]->type == OOLONG_ELEMENT_TYPE_TEXT_BOX)
-            if (stack_view->elements[element]->data.text_box.state == OOLONG_ELEMENT_STATE_ACTIVE)
-                text_box = &stack_view->elements[element]->data.text_box;
-
-    if (key == KEY_ESCAPE || key == KEY_RETURN)
-    {
-        text_box->state = OOLONG_ELEMENT_STATE_SELECTED;
-        return OOLONG_ERROR_NONE;
-    }
-
-    if (text_box->entered_text == NULL)
-        text_box->entered_text = calloc(1, sizeof(wchar_t));
-
-    if (key == KEY_BACKSPACE)
-    {
-        if (text_box->entered_text[0] == L'\0')
-            return OOLONG_ERROR_NONE;
-
-        size_t length = wcslen(text_box->entered_text);
-        text_box->entered_text[length - 1] = L'\0';
-        return OOLONG_ERROR_NONE;
-    }
-
-    size_t length = wcslen(text_box->entered_text);
-    for (; text_box->entered_text[length] != L'\0'; length++);
-
-    if (32 > key || 126 < key)
-        return OOLONG_ERROR_NONE;
-    
-    wchar_t* new_text = reallocarray(text_box->entered_text, length + 2, sizeof(wchar_t));
-    length++;
-
-    if (new_text == NULL)
-        return oolong_error_record(OOLONG_ERROR_NOT_ENOUGH_MEMORY);
-
-    text_box->entered_text = new_text;
-    text_box->entered_text[length - 1] = key;
-    text_box->entered_text[length] = L'\0';
-    return OOLONG_ERROR_NONE;
-}
-
-oolong_error_t oolong_stack_view_print(oolong_stack_view_t* stack_view, file_t* file)
-{
-    if (stack_view == NULL || file == NULL)
-        return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
-
-    oolong_terminal_clear(file);
-    oolong_terminal_set_cursor_position(0, 0, file);
-
-    for (size_t i = 0; i < stack_view->options->view_top_margin; i++)
-        fputwc(L'\n', file);
-
-    switch (stack_view->options->align)
-    {
-        case (OOLONG_ALIGN_CENTER):
-            return print_centered_aligned(stack_view, file);
-
-        case (OOLONG_ALIGN_LEFT):
-            return print_left_aligned(stack_view, file);
-
-        case (OOLONG_ALIGN_RIGHT):
-            return print_right_aligned(stack_view, file);
-
-        case (OOLONG_ALIGN_WIDTH):
-            return print_left_aligned(stack_view, file);
-    }
-
-    fflush(file);
-
-    if (ferror(file))
-        return oolong_error_record(OOLONG_ERROR_FAILED_IO_WRITE);
-
-    return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+	if (view == NULL || file == NULL || view->elements == NULL)
+		return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
+
+	for (unsigned int i = 0; i < view->margin_top; i++)
+		putwc(L'\n', file);
+
+	switch (view->alignment)
+	{
+		case (OOLONG_ALIGN_LEFT):	return print_left_aligned(view, file);
+		case (OOLONG_ALIGN_CENTER):	return print_center_aligned(view, file);
+		case (OOLONG_ALIGN_RIGHT):	return print_right_aligned(view, file);
+		case (OOLONG_ALIGN_WIDTH):	return print_width_aligned(view, file);
+	}
+
+	return oolong_error_record(OOLONG_ERROR_INVALID_ARGUMENT);
 }
 
