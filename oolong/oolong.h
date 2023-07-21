@@ -16,6 +16,7 @@
 #include "screen.h"
 #include "styling.h"
 
+#include "stack_view.h"
 #include "element.h"
 #include "label.h"
 #include "button.h"
